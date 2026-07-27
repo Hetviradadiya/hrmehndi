@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,210 +8,22 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <style>
-    /* ── RESET & TOKENS ───────────────────────────────── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --crimson: #800020; --crimson-dark: #5a0015; --crimson-light: #a00028;
-      --rose: #c2185b; --blush: #f8e8ee; --cream: #fdf6f0; --sand: #f9f3e8;
-      --gold: #c8973a; --gold-light: #f5e6c8;
-      --charcoal: #2d2020; --warm-gray: #6b5555; --border: #e8d5d5;
-      --ff-display: 'Cormorant Garamond', Georgia, serif;
-      --ff-body: 'Inter', system-ui, sans-serif;
-      --radius: 12px; --radius-sm: 8px;
-      --transition: 0.2s ease;
-    }
-    body { font-family: var(--ff-body); background: var(--cream); color: var(--charcoal); padding-top: 64px; }
-
-    /* ── NAV ────────────────────────────────────────── */
-    .nav {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
-      background: rgba(253,246,240,0.98);
-      backdrop-filter: blur(8px);
-      border-bottom: 1px solid var(--border);
-      padding: 0 1.25rem;
-      display: flex; align-items: center; justify-content: space-around; gap: 2rem; flex-wrap: nowrap;
-      height: 64px;
-      white-space: nowrap;
-    }
-    .nav-brand { font-family: var(--ff-display); font-size: 1.5rem; font-weight: 600; color: var(--crimson); letter-spacing: 0.02em; text-decoration: none; white-space: nowrap; }
-    .nav-links { display: flex; gap: 1.5rem; }
-    .nav-links { display: flex; gap: 1.5rem; align-items: center; }
-    .nav-links a { font-size: 0.85rem; font-weight: 500; color: var(--charcoal); text-decoration: none; letter-spacing: 0.03em; transition: color var(--transition); white-space: nowrap; }
-    .nav-links a:hover { color: var(--crimson); }
-    .nav-cta { background: var(--crimson); color: #fff; padding: 0.45rem 1rem; border-radius: 6px; font-size: 0.82rem; font-weight: 600; text-decoration: none; transition: background var(--transition); white-space: nowrap; }
-    .nav-cta:hover { background: var(--crimson-dark); }
-    .nav-toggle { display: none; background: none; border: none; cursor: pointer; color: var(--charcoal); font-size: 1.5rem; line-height: 1; }
-    .nav-mobile { display: none; position: fixed; top: 64px; left: 0; right: 0; background: var(--cream); border-bottom: 1px solid var(--border); z-index: 999; flex-direction: column; padding: 1rem 1.5rem; gap: 0.75rem; }
-    .nav-mobile.open { display: flex; }
-    .nav-mobile a { font-size: 1rem; font-weight: 500; color: var(--charcoal); text-decoration: none; padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
-    @media(max-width:680px) {
-      .nav-links, .nav-cta { display: none; }
-      .nav-toggle { display: block; }
-    }
-
-    /* ── HERO ───────────────────────────────────────── */
-    .hero {
-      min-height: 88vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
-      text-align: center; padding: 4rem 1.5rem 3rem;
-      background: linear-gradient(160deg, #fdf6f0 0%, #f8e8ee 50%, #fdf6f0 100%);
-      position: relative; overflow: hidden;
-    }
-    .hero::before {
-      content: ''; position: absolute; inset: 0; pointer-events: none;
-      background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(128,0,32,0.06) 0%, transparent 70%);
-    }
-    .hero-eyebrow { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.2em; color: var(--crimson); text-transform: uppercase; margin-bottom: 1.25rem; }
-    .hero-title { font-family: var(--ff-display); font-size: clamp(2.8rem, 8vw, 5.5rem); font-weight: 600; color: var(--charcoal); line-height: 1.05; margin-bottom: 0.5rem; }
-    .hero-title em { color: var(--crimson); font-style: italic; }
-    .hero-sub { font-size: 1.05rem; color: var(--warm-gray); max-width: 480px; margin: 1.25rem auto 2rem; line-height: 1.7; }
-    .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
-    .btn-primary { background: var(--crimson); color: #fff; padding: 0.8rem 2rem; border-radius: 8px; font-weight: 600; font-size: 0.95rem; text-decoration: none; border: none; cursor: pointer; transition: all var(--transition); display: inline-block; font-family: var(--ff-body); }
-    .btn-primary:hover { background: var(--crimson-dark); transform: translateY(-1px); }
-    .btn-outline { background: transparent; color: var(--crimson); padding: 0.8rem 2rem; border-radius: 8px; font-weight: 600; font-size: 0.95rem; text-decoration: none; border: 2px solid var(--crimson); cursor: pointer; transition: all var(--transition); display: inline-block; font-family: var(--ff-body); }
-    .btn-outline:hover { background: var(--blush); }
-    .hero-badges { display: flex; gap: 1.5rem; margin-top: 2.5rem; flex-wrap: wrap; justify-content: center; }
-    .hero-badge { display: flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; color: var(--warm-gray); }
-    .hero-badge-icon { color: var(--gold); }
-
-    /* ── STATS ──────────────────────────────────────── */
-    .stats-bar { background: var(--crimson); padding: 2rem 1.25rem; }
-    .stats-inner { max-width: 900px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 1.5rem; text-align: center; }
-    .stat-num { font-family: var(--ff-display); font-size: 2.2rem; font-weight: 600; color: #fff; }
-    .stat-label { font-size: 0.78rem; color: rgba(255,255,255,0.75); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 0.2rem; }
-
-    /* ── SECTION COMMONS ────────────────────────────── */
-    .section { padding: 4.5rem 1.25rem; max-width: 1100px; margin: 0 auto; }
-    .section-full { padding: 4.5rem 1.25rem; }
-    .section-label { font-size: 0.72rem; letter-spacing: 0.2em; color: var(--crimson); text-transform: uppercase; font-weight: 600; margin-bottom: 0.75rem; }
-    .section-title { font-family: var(--ff-display); font-size: clamp(1.9rem, 4vw, 3rem); font-weight: 600; color: var(--charcoal); margin-bottom: 1rem; line-height: 1.15; }
-    .section-title em { color: var(--crimson); font-style: italic; }
-    .section-desc { color: var(--warm-gray); font-size: 1rem; max-width: 520px; line-height: 1.7; margin: 0.6rem auto 0; text-align: center; }
-    .section-header { text-align: center; margin-bottom: 3rem; }
-
-    /* ── PORTFOLIO ──────────────────────────────────── */
-    .portfolio-bg { background: var(--sand); }
-    .cat-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; margin-bottom: 2.5rem; }
-    .cat-tab { padding: 0.5rem 1.1rem; border-radius: 50px; font-size: 0.83rem; font-weight: 500; border: 1.5px solid var(--border); background: #fff; color: var(--warm-gray); cursor: pointer; transition: all var(--transition); font-family: var(--ff-body); }
-    .cat-tab:hover, .cat-tab.active { background: var(--crimson); color: #fff; border-color: var(--crimson); }
-    .portfolio-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px,1fr)); gap: 1.25rem; }
-    .portfolio-card { background: #fff; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); cursor: pointer; transition: all var(--transition); }
-    .portfolio-card:hover { transform: translateY(-3px); box-shadow: 0 8px 32px rgba(128,0,32,0.12); }
-    .portfolio-img { height: 200px; display: flex; align-items: center; justify-content: center; font-size: 4rem; background: linear-gradient(135deg, var(--blush) 0%, var(--gold-light) 100%); position: relative; overflow: hidden; }
-    .portfolio-img img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
-    .portfolio-img .emoji-fallback { position: relative; z-index: 1; }
-    .portfolio-info { padding: 1rem; }
-    .portfolio-cat { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--crimson); margin-bottom: 0.3rem; }
-    .portfolio-name { font-family: var(--ff-display); font-size: 1.15rem; font-weight: 600; color: var(--charcoal); margin-bottom: 0.35rem; }
-    .portfolio-desc { font-size: 0.8rem; color: var(--warm-gray); line-height: 1.55; }
-    .portfolio-count { position: absolute; bottom: 0.5rem; right: 0.6rem; background: rgba(0,0,0,0.65); color: #fff; font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 50px; z-index: 2; }
-    .featured-badge { position: absolute; top: 0.6rem; left: 0.6rem; background: var(--crimson); color: #fff; font-size: 0.68rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 50px; letter-spacing: 0.06em; z-index: 2; }
-    .empty-state { text-align: center; padding: 4rem 2rem; background: #fff; border-radius: var(--radius); border: 2px dashed var(--border); }
-    .empty-state .big-emoji { font-size: 3.5rem; margin-bottom: 1rem; }
-
-    /* ── MODAL ──────────────────────────────────────── */
-    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(30,10,10,0.78); z-index: 200; align-items: center; justify-content: center; padding: 1.5rem; }
-    .modal-overlay.open { display: flex; }
-    .modal-box { background: #fff; border-radius: 16px; max-width: 480px; width: 100%; overflow: hidden; position: relative; max-height: 90vh; overflow-y: auto; }
-    .modal-main-img { height: 280px; display: flex; align-items: center; justify-content: center; font-size: 6rem; background: linear-gradient(135deg, var(--blush), var(--gold-light)); position: relative; overflow: hidden; }
-    .modal-main-img img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
-    .modal-main-img .emoji-lg { position: relative; z-index: 1; }
-    .modal-thumbs { display: flex; gap: 0.5rem; padding: 0.75rem 1rem; overflow-x: auto; background: #fafafa; border-bottom: 1px solid var(--border); }
-    .modal-thumb { width: 56px; height: 56px; flex-shrink: 0; border-radius: 8px; overflow: hidden; cursor: pointer; border: 2px solid transparent; transition: border-color var(--transition); background: var(--blush); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
-    .modal-thumb img { width: 100%; height: 100%; object-fit: cover; }
-    .modal-thumb.active { border-color: var(--crimson); }
-    .modal-content { padding: 1.5rem; }
-    .modal-close { position: absolute; top: 0.75rem; right: 0.75rem; background: rgba(255,255,255,0.92); border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; color: var(--charcoal); z-index: 5; transition: background var(--transition); }
-    .modal-close:hover { background: var(--blush); color: var(--crimson); }
-
-    /* ── SERVICES ───────────────────────────────────── */
-    .services-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 1.5rem; }
-    .service-card { background: #fff; border-radius: var(--radius); border: 1px solid var(--border); padding: 1.75rem; transition: all var(--transition); }
-    .service-card:hover { border-color: var(--crimson); box-shadow: 0 4px 20px rgba(128,0,32,0.1); }
-    .service-icon { font-size: 2rem; margin-bottom: 1rem; }
-    .service-name { font-family: var(--ff-display); font-size: 1.3rem; font-weight: 600; color: var(--charcoal); margin-bottom: 0.3rem; }
-    .service-meta { display: flex; gap: 0.6rem; align-items: baseline; flex-wrap: wrap; margin-bottom: 0.75rem; }
-    .service-price { color: var(--crimson); font-weight: 700; font-size: 1.1rem; }
-    .service-duration { font-size: 0.78rem; color: var(--warm-gray); }
-    .service-desc { font-size: 0.85rem; color: var(--warm-gray); line-height: 1.6; margin-bottom: 1rem; }
-    .service-includes { list-style: none; display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1.25rem; }
-    .service-includes li { font-size: 0.8rem; color: var(--charcoal); display: flex; align-items: flex-start; gap: 0.5rem; }
-    .service-includes li::before { content: "✓"; color: var(--crimson); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
-
-    /* ── BOOKING ─────────────────────────────────────── */
-    .booking-bg { background: linear-gradient(160deg, var(--charcoal) 0%, #1a0a0e 100%); }
-    .booking-wrap { max-width: 720px; margin: 0 auto; padding: 4.5rem 1.25rem; }
-    .booking-title { font-family: var(--ff-display); font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 600; color: #fff; margin-bottom: 0.5rem; }
-    .booking-title em { color: var(--rose); font-style: italic; }
-    .booking-sub { color: rgba(255,255,255,0.6); margin-bottom: 2.5rem; font-size: 0.95rem; line-height: 1.7; }
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    @media(max-width:540px) { .form-grid { grid-template-columns: 1fr; } }
-    .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
-    .form-group.full { grid-column: 1 / -1; }
-    .form-group label { font-size: 0.8rem; font-weight: 600; color: rgba(255,255,255,0.75); letter-spacing: 0.05em; }
-    .form-group input, .form-group select, .form-group textarea {
-      background: rgba(255,255,255,0.07); border: 1.5px solid rgba(255,255,255,0.15);
-      border-radius: 8px; color: #fff; padding: 0.7rem 0.9rem; font-size: 0.9rem;
-      font-family: var(--ff-body); outline: none; transition: border-color var(--transition); width: 100%;
-    }
-    .form-group input::placeholder, .form-group textarea::placeholder { color: rgba(255,255,255,0.3); }
-    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--rose); }
-    .form-group select option { background: #2d1010; }
-    .form-group textarea { resize: vertical; min-height: 100px; }
-    .form-submit { background: var(--crimson); color: #fff; border: none; border-radius: 8px; padding: 0.9rem 2.5rem; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all var(--transition); margin-top: 0.5rem; font-family: var(--ff-body); }
-    .form-submit:hover { background: var(--crimson-light); transform: translateY(-1px); }
-    .alert { border-radius: 8px; padding: 1rem 1.25rem; font-size: 0.9rem; margin-top: 1rem; font-weight: 500; }
-    .alert-success { background: rgba(76,175,80,0.15); border: 1px solid rgba(76,175,80,0.4); color: #81c784; }
-    .alert-error { background: rgba(244,67,54,0.15); border: 1px solid rgba(244,67,54,0.4); color: #e57373; }
-
-    /* ── AFTERCARE ───────────────────────────────────── */
-    .aftercare-bg { background: var(--blush); }
-    .aftercare-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 1.25rem; }
-    .aftercare-card { background: #fff; border-radius: var(--radius); padding: 1.5rem; border: 1px solid var(--border); display: flex; gap: 1rem; }
-    .aftercare-step { font-family: var(--ff-display); font-size: 0.9rem; color: var(--crimson); font-weight: 600; min-width: 28px; }
-    .aftercare-icon { font-size: 1.4rem; margin-bottom: 0.5rem; }
-    .aftercare-title { font-weight: 600; font-size: 0.95rem; color: var(--charcoal); margin-bottom: 0.35rem; }
-    .aftercare-desc { font-size: 0.82rem; color: var(--warm-gray); line-height: 1.6; }
-
-    /* ── FOOTER ─────────────────────────────────────── */
-    .footer { background: var(--charcoal); color: rgba(255,255,255,0.7); padding: 3rem 1.25rem 1.5rem; }
-    .footer-inner { max-width: 1100px; margin: 0 auto; }
-    .footer-top { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 2.5rem; margin-bottom: 2.5rem; }
-    @media(max-width:600px) { .footer-top { grid-template-columns: 1fr; gap: 1.5rem; } }
-    .footer-brand { font-family: var(--ff-display); font-size: 1.6rem; font-weight: 600; color: #fff; margin-bottom: 0.6rem; }
-    .footer-tagline { font-size: 0.85rem; line-height: 1.65; max-width: 260px; }
-    .footer-social { display: flex; gap: 0.75rem; margin-top: 1rem; }
-    .footer-social a { background: rgba(255,255,255,0.1); border-radius: 8px; padding: 0.5rem 0.9rem; color: #fff; text-decoration: none; font-size: 0.82rem; transition: background var(--transition); }
-    .footer-social a:hover { background: rgba(255,255,255,0.2); }
-    .footer-col-title { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #fff; margin-bottom: 0.9rem; }
-    .footer-links { display: flex; flex-direction: column; gap: 0.5rem; }
-    .footer-links a { font-size: 0.85rem; color: rgba(255,255,255,0.6); text-decoration: none; transition: color var(--transition); }
-    .footer-links a:hover { color: #fff; }
-    .footer-links span { font-size: 0.85rem; color: rgba(255,255,255,0.6); }
-    .footer-divider { border: none; border-top: 1px solid rgba(255,255,255,0.1); margin-bottom: 1.25rem; }
-    .footer-bottom { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; font-size: 0.78rem; }
-
-    /* ── WHATSAPP FAB ───────────────────────────────── */
-    .wa-fab { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 150; background: #25d366; color: #fff; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; text-decoration: none; box-shadow: 0 4px 20px rgba(37,211,102,0.4); transition: transform var(--transition); }
-    .wa-fab:hover { transform: scale(1.08); }
-
-    /* ── SCROLL REVEAL ──────────────────────────────── */
-    .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.55s ease, transform 0.55s ease; }
-    .reveal.visible { opacity: 1; transform: translateY(0); }
-
-    /* ── FLASH MESSAGES ─────────────────────────────── */
-    .flash { padding: 1rem 1.25rem; border-radius: 8px; font-size: 0.9rem; font-weight: 500; text-align: center; max-width: 720px; margin: 1rem auto; }
-    .flash-success { background: rgba(76,175,80,0.15); border: 1px solid rgba(76,175,80,0.4); color: #2e7d32; }
-  </style>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
 </head>
 <body>
 
 <!-- ── NAV ──────────────────────────────────────────────────────────────── -->
 <nav class="nav">
+  {% comment %} <a class="nav-brand" href="#home">
+    <img src="{% static 'images/logo.png' %}" alt="HR Mehndi Logo" class="nav-logo">
+    <span class="nav-brand-text">HR Mehndi</span>
+  </a> {% endcomment %}
   <a class="nav-brand" href="#home">✦ HR Mehndi</a>
   <div class="nav-links">
     <a href="#home">Home</a>
     <a href="#portfolio">Portfolio</a>
+    <a href="{% url 'gallery' %}">Gallery</a>
     <a href="#services">Services</a>
     <a href="#aftercare">Aftercare</a>
     <a href="#booking" class="nav-cta" style="color:white;">Book Now</a>
@@ -220,9 +33,10 @@
 <div class="nav-mobile" id="navMobile">
   <a href="#home" onclick="closeNav()">Home</a>
   <a href="#portfolio" onclick="closeNav()">Portfolio</a>
+  <a href="{% url 'gallery' %}" onclick="closeNav()">Gallery</a>
   <a href="#services" onclick="closeNav()">Services</a>
   <a href="#aftercare" onclick="closeNav()">Aftercare</a>
-  <a href="#booking" onclick="closeNav()" style="color:white;">Book Now</a>
+  <a href="#booking" onclick="closeNav()" class="nav-mobile-cta">Book Now</a>
 </div>
 
 <!-- ── FLASH MESSAGES ─────────────────────────────────────────────────── -->
@@ -249,7 +63,6 @@
   </div>
   <div class="hero-badges">
     <div class="hero-badge"><span class="hero-badge-icon">★</span> Bridal Specialists</div>
-    {% comment %} <div class="hero-badge"><span class="hero-badge-icon">★</span> 500+ Happy Clients</div> {% endcomment %}
     <div class="hero-badge"><span class="hero-badge-icon">★</span> Gujarat-wide Service</div>
   </div>
 </section>
@@ -257,10 +70,6 @@
 <!-- ── STATS BAR ──────────────────────────────────────────────────────── -->
 <div class="stats-bar">
   <div class="stats-inner">
-    {% comment %} <div>
-      <div class="stat-num">500+</div>
-      <div class="stat-label">Happy Brides</div>
-    </div> {% endcomment %}
     <div>
       <div class="stat-num">1+</div>
       <div class="stat-label">Years Experience</div>
@@ -282,78 +91,53 @@
     <div class="section-header reveal">
       <div class="section-label">Portfolio</div>
       <h2 class="section-title">Designs that <em>breathe</em></h2>
-      <p class="section-desc">Each design is crafted fresh — no two are identical. Browse our gallery of bridal, Arabic, and artisan work.</p>
+      <p class="section-desc">A curated selection of featured designs. View the full photo gallery on a dedicated page.</p>
+      <a href="{% url 'gallery' %}" class="btn-outline" style="margin-top:1rem; display:inline-block;">Explore Full Gallery</a>
     </div>
 
     {% if designs %}
-      <!-- Category filter tabs -->
+      <!-- Category Tabs for Real Original Works -->
       <div class="cat-tabs reveal">
-        <button class="cat-tab active" onclick="filterDesigns('All', this)">All</button>
-        <button class="cat-tab" onclick="filterDesigns('Bridal', this)">Bridal</button>
-        <button class="cat-tab" onclick="filterDesigns('Arabic', this)">Arabic</button>
-        <button class="cat-tab" onclick="filterDesigns('Party', this)">Party</button>
-        <button class="cat-tab" onclick="filterDesigns('Crafts', this)">Crafts</button>
+        <button class="cat-tab active" onclick="filterOriginals(this)">✨ Originals</button>
+
+        <!-- DYNAMIC BACKEND CATEGORIES -->
+        {% if categories %}
+          {% for category in categories %}
+            <button class="cat-tab" onclick="filterDesigns('{{ category.slug }}', this)">
+              {{ category.name }}
+            </button>
+          {% endfor %}
+        {% endif %}
       </div>
 
       <div class="portfolio-grid reveal" id="portfolioGrid">
         {% for design in designs %}
           <div class="portfolio-card"
-               data-category="{{ design.service_type|default:'Bridal' }}"
-               onclick="openDesignModal('{{ design.id }}')">
+               data-categories="{{ design.get_category_slugs }}"
+               data-original="{{ design.is_original_work|yesno:'true,false' }}"
+               onclick="openLightbox({{ forloop.counter0 }})">
             <div class="portfolio-img">
               <img src="{{ design.cover_image.url }}" alt="{{ design.title }}">
-              {% if design.all_images.count > 0 %}
-                <span class="portfolio-count">📷 {{ design.all_images.count|add:"1" }} Photos</span>
+              {% if design.all_images.all|length %}
+                <span class="portfolio-count">📷 {{ design.all_images.all|length|add:"1" }} Photos</span>
               {% endif %}
               {% if design.is_original_work %}
                 <span class="featured-badge">ORIGINAL</span>
               {% endif %}
             </div>
             <div class="portfolio-info">
-              <div class="portfolio-cat">{{ design.service_type|default:"Mehndi" }}</div>
-              <div class="portfolio-name">{{ design.title }}</div>
+              <div class="portfolio-cat">
+                {% for cat in design.categories.all %}{{ cat.name }}{% if not forloop.last %} · {% endif %}{% empty %}{{ design.service_type|default:"Mehndi" }}{% endfor %}
+              </div>
               {% if design.description %}
                 <div class="portfolio-desc">{{ design.description }}</div>
               {% endif %}
-            </div>
-          </div>
-
-          <!-- Modal for this design -->
-          <div id="modal-{{ design.id }}" class="modal-overlay" onclick="if(event.target===this)closeDesignModal('{{ design.id }}')">
-            <div class="modal-box">
-              <button class="modal-close" onclick="closeDesignModal('{{ design.id }}')">✕</button>
-              <div class="modal-main-img">
-                <img id="modal-main-{{ design.id }}" src="{{ design.cover_image.url }}" alt="{{ design.title }}">
-              </div>
-              {% if design.all_images.count > 0 %}
-                <div class="modal-thumbs">
-                  <div class="modal-thumb active" onclick="switchModalImg('{{ design.id }}','{{ design.cover_image.url }}',this)">
-                    <img src="{{ design.cover_image.url }}" alt="Cover">
-                  </div>
-                  {% for img in design.all_images.all %}
-                    <div class="modal-thumb" onclick="switchModalImg('{{ design.id }}','{{ img.image.url }}',this)">
-                      <img src="{{ img.image.url }}" alt="{{ img.caption|default:design.title }}">
-                    </div>
-                  {% endfor %}
-                </div>
-              {% endif %}
-              <div class="modal-content">
-                <div class="portfolio-cat">{{ design.service_type|default:"Mehndi" }}</div>
-                <div class="portfolio-name" style="font-family:var(--ff-display);font-size:1.5rem;margin-bottom:0.6rem;">{{ design.title }}</div>
-                {% if design.description %}
-                  <p style="font-size:0.9rem;color:var(--warm-gray);line-height:1.7;">{{ design.description }}</p>
-                {% endif %}
-                {% if design.is_original_work %}
-                  <span style="display:inline-block;margin-top:0.75rem;background:var(--blush);color:var(--crimson);font-size:0.73rem;font-weight:600;padding:0.3rem 0.8rem;border-radius:50px;letter-spacing:0.08em;">ORIGINAL WORK</span>
-                {% endif %}
-              </div>
             </div>
           </div>
         {% endfor %}
       </div>
 
     {% else %}
-      <!-- Empty state when no designs uploaded yet -->
       <div class="empty-state reveal">
         <div class="big-emoji">🎨</div>
         <h3 style="font-family:var(--ff-display);font-size:1.5rem;margin-bottom:0.5rem;">Portfolio coming soon</h3>
@@ -376,7 +160,7 @@
       <div class="service-icon">💍</div>
       <div class="service-name">Bridal Mehndi</div>
       <div class="service-meta">
-        <span class="service-price">₹3,000+</span>
+        <span class="service-price">₹2,500+</span>
         <span class="service-duration">· 10-12 hrs</span>
       </div>
       <p class="service-desc">Full bridal package — both hands & feet with intricate traditional or fusion designs, includes touch-up service.</p>
@@ -410,7 +194,7 @@
       <div class="service-icon">🌿</div>
       <div class="service-name">Arabic / Fusion</div>
       <div class="service-meta">
-        <span class="service-price">₹500+</span>
+        <span class="service-price">₹300+</span>
         <span class="service-duration">· 1-2 hrs</span>
       </div>
       <p class="service-desc">Modern Arabic, geometric, and fusion designs for pre-wedding shoots or casual occasions.</p>
@@ -452,7 +236,7 @@
       <p class="booking-sub">Fill in the details below and we'll get back to you within 24 hours to confirm your booking.</p>
     </div>
 
-    <form method="POST" action="#booking" class="reveal">
+    <form method="POST" action="{% url 'home' %}" enctype="multipart/form-data" class="reveal" id="bookingForm">
       {% csrf_token %}
       <div class="form-grid">
         <div class="form-group">
@@ -469,7 +253,7 @@
         </div>
         <div class="form-group">
           <label for="event_date">Event Date</label>
-          <input type="date" id="event_date" name="event_date" required>
+          <input type="date" id="event_date" name="event_date" required onclick="if('showPicker' in this) this.showPicker();" onfocus="if('showPicker' in this) this.showPicker();">
         </div>
         <div class="form-group full">
           <label for="event_location">Event Location</label>
@@ -488,8 +272,12 @@
           <label for="number_of_people">Number of People</label>
           <input type="number" id="number_of_people" name="number_of_people" min="1" max="500" value="1">
         </div>
+        <div class="form-group">
+          <label for="attachment">Upload Your Selected Design (optional)</label>
+          <input type="file" id="attachment" name="attachment" accept="image/*">
+        </div>
         <div class="form-group full">
-          <label for="notes">Special Requirements</label>
+          <label for="notes">Special Requirements (optional)</label>
           <textarea id="notes" name="notes" placeholder="Design preferences, timing, access notes, reference images you love..."></textarea>
         </div>
       </div>
@@ -571,8 +359,11 @@
   <div class="footer-inner">
     <div class="footer-top">
       <div>
-        <div class="footer-brand">✦ HR Mehndi</div>
-        <p class="footer-tagline">Bridal mehndi, Arabic henna & artisan crafts. Serving Ahmedabad, Gujarat and beyond since 2018.</p>
+        <div class="footer-brand">
+          <img src="{% static 'images/logo.jpg' %}" alt="HR Mehndi Logo" class="footer-logo">
+          <span class="footer-brand-text">HR Mehndi</span>
+        </div>
+        <p class="footer-tagline">Bridal mehndi, Arabic henna & artisan crafts. Serving Ahmedabad, Gujarat and beyond since 2025.</p>
         <div class="footer-social">
           <a href="https://wa.me/919875288682">WhatsApp</a>
           <a href="https://instagram.com/mehndi.by.hetvi">Instagram</a>
@@ -606,6 +397,36 @@
   </div>
 </footer>
 
+<!-- ── FULLSCREEN LIGHTBOX MODAL (MATCHING GALLERY) ─────────────────── -->
+<div class="lightbox-overlay" id="lightboxModal" onclick="handleOverlayClick(event)">
+  <div class="lightbox-box">
+    <button class="lightbox-close" onclick="closeLightbox()" aria-label="Close">✕</button>
+    <div class="lightbox-main">
+      <button class="lightbox-nav lightbox-prev" onclick="prevLightbox(event)" aria-label="Previous image">‹</button>
+      <img id="lightboxImg" src="" alt="Portfolio Lightbox Image">
+      <button class="lightbox-nav lightbox-next" onclick="nextLightbox(event)" aria-label="Next image">›</button>
+    </div>
+    <div id="lightboxThumbsBar" class="lightbox-thumbs-bar" style="display:none;"></div>
+    <div class="lightbox-details">
+      <div class="lightbox-info">
+        <div class="lightbox-category" id="lightboxCategory">General</div>
+        <div class="lightbox-title" id="lightboxTitle">Design Title</div>
+        <div class="lightbox-caption" id="lightboxCaption">Design details</div>
+      </div>
+      <div class="lightbox-actions">
+        <button id="lightboxBookBtn" class="lightbox-btn-book">
+          <span>Book Now</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </button>
+        <a id="lightboxWaBtn" href="#" target="_blank" class="lightbox-btn-wa" aria-label="Book on WhatsApp">
+          <span>💬 WhatsApp</span>
+        </a>
+        <div class="lightbox-counter" id="lightboxCounter">1 / 1</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ── WHATSAPP FAB ────────────────────────────────────────────────────── -->
 <a class="wa-fab" href="https://wa.me/919875288682?text=Hi%20HR%20Mehndi%2C%20I%20want%20to%20book%20a%20mehndi%20appointment!" target="_blank" rel="noreferrer" aria-label="Chat on WhatsApp">💬</a>
 
@@ -618,46 +439,178 @@
     document.getElementById('navMobile').classList.remove('open');
   }
 
-  // ── Portfolio Category Filter ────────────────────────────────────────
+  // ── PORTFOLIO ITEMS DATA ─────────────────────────────────────────────
+  const portfolioItems = [
+    {% for design in designs %}
+      {
+        id: "{{ design.id }}",
+        url: "{{ design.cover_image.url }}",
+        title: "{{ design.title|escapejs }}",
+        caption: "{{ design.description|default:''|escapejs }}",
+        category: "{% for cat in design.categories.all %}{{ cat.name }}{% if not forloop.last %} · {% endif %}{% empty %}{{ design.service_type|default:'Mehndi' }}{% endfor %}",
+        slugs: "{{ design.get_category_slugs|escapejs }}",
+        isOriginal: {{ design.is_original_work|yesno:'true,false' }},
+        allImages: [
+          "{{ design.cover_image.url }}",
+          {% for img in design.all_images.all %}
+            "{{ img.image.url }}"{% if not forloop.last %},{% endif %}
+          {% endfor %}
+        ]
+      }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ];
+
+  let currentVisibleIndices = portfolioItems.map((_, i) => i);
+  let activeLightboxIndex = 0;
+  let activeSubImageIndex = 0;
+
+  // ── Dynamic Category Filter ──────────────────────────────────────────
   function filterDesigns(cat, btn) {
-    // Update active tab
     document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
     btn.classList.add('active');
 
-    // Filter cards
-    document.querySelectorAll('#portfolioGrid .portfolio-card').forEach(card => {
-      const cardCat = card.dataset.category || '';
-      if (cat === 'All' || cardCat.toLowerCase().includes(cat.toLowerCase())) {
+    currentVisibleIndices = [];
+    document.querySelectorAll('#portfolioGrid .portfolio-card').forEach((card, index) => {
+      const cardCats = (card.dataset.categories || '').toLowerCase().trim();
+      const selectedCat = cat.toLowerCase().trim();
+      const categories = cardCats.split(' ').filter(Boolean);
+
+      if (selectedCat === 'all' || categories.includes(selectedCat)) {
         card.style.display = '';
+        currentVisibleIndices.push(index);
       } else {
         card.style.display = 'none';
       }
     });
   }
 
-  // ── Design Modals ───────────────────────────────────────────────────
-  function openDesignModal(id) {
-    document.getElementById('modal-' + id).classList.add('open');
-    document.body.style.overflow = 'hidden';
-  }
-  function closeDesignModal(id) {
-    document.getElementById('modal-' + id).classList.remove('open');
-    document.body.style.overflow = '';
-  }
-  function switchModalImg(modalId, url, thumb) {
-    document.getElementById('modal-main-' + modalId).src = url;
-    const modal = document.getElementById('modal-' + modalId);
-    modal.querySelectorAll('.modal-thumb').forEach(t => t.classList.remove('active'));
-    thumb.classList.add('active');
+  // ── Originals Filter Functionality ───────────────────────────────────
+  function filterOriginals(btn) {
+    document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+
+    currentVisibleIndices = [];
+    document.querySelectorAll('#portfolioGrid .portfolio-card').forEach((card, index) => {
+      const isOriginal = card.dataset.original;
+      if (isOriginal === 'true') {
+        card.style.display = '';
+        currentVisibleIndices.push(index);
+      } else {
+        card.style.display = 'none';
+      }
+    });
   }
 
-  // Close modal with Escape key
+  // ── FULLSCREEN LIGHTBOX MODAL CONTROLS (MATCHING GALLERY) ────────────
+  function openLightbox(index) {
+    activeLightboxIndex = index;
+    activeSubImageIndex = 0;
+    updateLightboxContent();
+    document.getElementById('lightboxModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    const modal = document.getElementById('lightboxModal');
+    if (modal) modal.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function handleOverlayClick(event) {
+    if (event.target.id === 'lightboxModal') {
+      closeLightbox();
+    }
+  }
+
+  function switchSubImage(imgUrl, thumbElem, imgIdx) {
+    activeSubImageIndex = imgIdx;
+    document.getElementById('lightboxImg').src = imgUrl;
+    const thumbs = document.querySelectorAll('.lightbox-thumb');
+    thumbs.forEach(t => t.classList.remove('active'));
+    if (thumbElem) thumbElem.classList.add('active');
+  }
+
+  function updateLightboxContent() {
+    const item = portfolioItems[activeLightboxIndex];
+    if (!item) return;
+
+    const currentImgUrl = (item.allImages && item.allImages[activeSubImageIndex]) ? item.allImages[activeSubImageIndex] : item.url;
+    document.getElementById('lightboxImg').src = currentImgUrl;
+    document.getElementById('lightboxCategory').textContent = item.category || 'Mehndi Work';
+    document.getElementById('lightboxTitle').textContent = item.title || item.category || 'Mehndi Design';
+    document.getElementById('lightboxCaption').textContent = item.caption;
+
+    // Render thumbnail bar if portfolio item has multiple photos
+    const thumbsBar = document.getElementById('lightboxThumbsBar');
+    if (thumbsBar) {
+      if (item.allImages && item.allImages.length > 1) {
+        thumbsBar.style.display = 'flex';
+        thumbsBar.innerHTML = item.allImages.map((imgUrl, i) => `
+          <div class="lightbox-thumb ${i === activeSubImageIndex ? 'active' : ''}" onclick="switchSubImage('${imgUrl}', this, ${i})">
+            <img src="${imgUrl}" alt="Thumbnail ${i+1}">
+          </div>
+        `).join('');
+      } else {
+        thumbsBar.style.display = 'none';
+        thumbsBar.innerHTML = '';
+      }
+    }
+
+    const posInVisible = currentVisibleIndices.indexOf(activeLightboxIndex) + 1;
+    const totalVisible = currentVisibleIndices.length > 0 ? currentVisibleIndices.length : portfolioItems.length;
+    document.getElementById('lightboxCounter').textContent = `${posInVisible > 0 ? posInVisible : (activeLightboxIndex + 1)} / ${totalVisible}`;
+
+    // Update Book Now & WhatsApp CTA actions
+    const designTitle = item.title || item.category || 'Mehndi Design';
+    const bookBtn = document.getElementById('lightboxBookBtn');
+    const waBtn = document.getElementById('lightboxWaBtn');
+    if (bookBtn) {
+      bookBtn.onclick = function() {
+        closeLightbox();
+        const notesField = document.getElementById('notes');
+        if (notesField) {
+          notesField.value = "Interested in design: " + designTitle + "\n\n" + notesField.value;
+        }
+        const bookingSection = document.getElementById('booking');
+        if (bookingSection) {
+          bookingSection.scrollIntoView({ behavior: 'smooth' });
+        }
+      };
+    }
+    if (waBtn) {
+      waBtn.href = "https://api.whatsapp.com/send?phone=919875288682&text=" + encodeURIComponent("Hello HR Mehndi! I saw your portfolio design \"" + designTitle + "\" and would like to book/inquire about it.");
+    }
+  }
+
+  function nextLightbox(event) {
+    if (event) event.stopPropagation();
+    if (currentVisibleIndices.length === 0) return;
+    let currentPos = currentVisibleIndices.indexOf(activeLightboxIndex);
+    if (currentPos === -1) currentPos = 0;
+    const nextPos = (currentPos + 1) % currentVisibleIndices.length;
+    activeLightboxIndex = currentVisibleIndices[nextPos];
+    activeSubImageIndex = 0;
+    updateLightboxContent();
+  }
+
+  function prevLightbox(event) {
+    if (event) event.stopPropagation();
+    if (currentVisibleIndices.length === 0) return;
+    let currentPos = currentVisibleIndices.indexOf(activeLightboxIndex);
+    if (currentPos === -1) currentPos = 0;
+    const prevPos = (currentPos - 1 + currentVisibleIndices.length) % currentVisibleIndices.length;
+    activeLightboxIndex = currentVisibleIndices[prevPos];
+    activeSubImageIndex = 0;
+    updateLightboxContent();
+  }
+
+  // KEYBOARD NAVIGATION FOR LIGHTBOX
   document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-      document.querySelectorAll('.modal-overlay.open').forEach(m => {
-        const id = m.id.replace('modal-', '');
-        closeDesignModal(id);
-      });
+    const modal = document.getElementById('lightboxModal');
+    if (modal && modal.classList.contains('open')) {
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowRight') nextLightbox();
+      if (e.key === 'ArrowLeft') prevLightbox();
     }
   });
 
@@ -679,6 +632,42 @@
         closeNav();
       }
     });
+  });
+
+  // ── Auto-fill design reference & date picker initializer ────────────
+  document.addEventListener('DOMContentLoaded', function() {
+    // Auto-fill design reference if passed in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const designParam = urlParams.get('design');
+    if (designParam) {
+      const notesField = document.getElementById('notes');
+      if (notesField) {
+        notesField.value = "Interested in design: " + designParam + "\n\n" + notesField.value;
+      }
+      const bookingSection = document.getElementById('booking');
+      if (bookingSection) {
+        setTimeout(function() {
+          bookingSection.scrollIntoView({ behavior: 'smooth' });
+        }, 300);
+      }
+    }
+
+    // Auto-open calendar box when clicking anywhere on Event Date field
+    const dateInput = document.getElementById('event_date');
+    if (dateInput) {
+      const today = new Date().toISOString().split('T')[0];
+      dateInput.min = today;
+
+      ['click', 'focus'].forEach(function(evt) {
+        dateInput.addEventListener(evt, function() {
+          if ('showPicker' in HTMLInputElement.prototype) {
+            try {
+              this.showPicker();
+            } catch (err) {}
+          }
+        });
+      });
+    }
   });
 </script>
 </body>

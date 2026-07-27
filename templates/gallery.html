@@ -1,0 +1,287 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gallery – HR Mehndi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+</head>
+<body>
+
+  <!-- ── NAV (EXACT MATCH TO HOME.HTML) ─────────────────────────────────── -->
+  <nav class="nav">
+    <a class="nav-brand" href="#home">✦ HR Mehndi</a>
+    {% comment %} <a class="nav-brand" href="{% url 'home' %}">
+      <img src="{% static 'images/logo.jpg' %}" alt="HR Mehndi Logo" class="nav-logo">
+      <span class="nav-brand-text">HR Mehndi</span>
+    </a> {% endcomment %}
+    <div class="nav-links">
+      <a href="{% url 'home' %}">Home</a>
+      <a href="{% url 'home' %}#portfolio">Portfolio</a>
+      <a href="{% url 'gallery' %}" class="active">Gallery</a>
+      <a href="{% url 'home' %}#services">Services</a>
+      <a href="{% url 'home' %}#aftercare">Aftercare</a>
+      <a href="{% url 'home' %}#booking" class="nav-cta">Book Now</a>
+    </div>
+    <button class="nav-toggle" onclick="toggleNav()" aria-label="Menu">☰</button>
+  </nav>
+
+  <div class="nav-mobile" id="navMobile">
+    <a href="{% url 'home' %}" onclick="closeNav()">Home</a>
+    <a href="{% url 'home' %}#portfolio" onclick="closeNav()">Portfolio</a>
+    <a href="{% url 'gallery' %}" onclick="closeNav()">Gallery</a>
+    <a href="{% url 'home' %}#services" onclick="closeNav()">Services</a>
+    <a href="{% url 'home' %}#aftercare" onclick="closeNav()">Aftercare</a>
+    <a href="{% url 'home' %}#booking" onclick="closeNav()" class="nav-mobile-cta">Book Now</a>
+  </div>
+
+  <!-- ── COMPACT GALLERY TOP BAR (MATCHING REFERENCE IMAGE 3) ──────────── -->
+  <div class="gallery-top-bar">
+    <div class="gallery-title-tag">GALLERY</div>
+
+    {% if categories %}
+      <div class="filter-wrap">
+        <button class="filter-tab active" onclick="filterGallery('all', this)">All Works</button>
+        <button class="filter-tab" onclick="filterGallery('originals', this)">✨ Originals</button>
+        {% for cat in categories %}
+          <button class="filter-tab" onclick="filterGallery('{{ cat.slug|lower }}', this)">{{ cat.name }}</button>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- ── DIRECT MASONRY PHOTO GRID (NO EXTRA TEXT OR SPACERS) ────────────── -->
+  <main class="gallery-section">
+    {% if gallery_images %}
+      <div class="masonry-grid" id="galleryGrid">
+        {% for image in gallery_images %}
+          <article class="gallery-card" data-category="{{ image.category_slugs }}" data-original="{{ image.is_original|yesno:'true,false' }}" onclick="openLightbox({{ forloop.counter0 }})">
+            <img src="{{ image.url }}" alt="{{ image.category_name }}" loading="lazy">
+            {% if image.is_original %}
+              <span class="featured-badge">ORIGINAL</span>
+            {% endif %}
+            <div class="gallery-card-overlay">
+              {% if image.category_name %}
+                <div class="gallery-card-sub">{{ image.category_name }}</div>
+              {% endif %}
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <h2>No gallery images yet</h2>
+        <p>Add designs and photos from the admin panel to showcase your henna collection.</p>
+      </div>
+    {% endif %}
+  </main>
+
+  <!-- ── FULLSCREEN LIGHTBOX MODAL ─────────────────────────────────────── -->
+  <div class="lightbox-overlay" id="lightboxModal" onclick="handleOverlayClick(event)">
+    <div class="lightbox-box">
+      <button class="lightbox-close" onclick="closeLightbox()" aria-label="Close">✕</button>
+      <div class="lightbox-main">
+        <button class="lightbox-nav lightbox-prev" onclick="prevLightbox(event)" aria-label="Previous image">‹</button>
+        <img id="lightboxImg" src="" alt="Gallery Lightbox Image">
+        <button class="lightbox-nav lightbox-next" onclick="nextLightbox(event)" aria-label="Next image">›</button>
+      </div>
+      <div class="lightbox-details">
+        <div class="lightbox-info">
+          <div class="lightbox-category" id="lightboxCategory">General</div>
+          <div class="lightbox-title" id="lightboxTitle">Design Title</div>
+          <div class="lightbox-caption" id="lightboxCaption">Design details</div>
+        </div>
+        <div class="lightbox-actions">
+          <a id="lightboxBookBtn" href="{% url 'home' %}#booking" class="lightbox-btn-book">
+            <span>Book Now</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </a>
+          <a id="lightboxWaBtn" href="#" target="_blank" class="lightbox-btn-wa" aria-label="Book on WhatsApp">
+            <span>💬 WhatsApp</span>
+          </a>
+          <div class="lightbox-counter" id="lightboxCounter">1 / 1</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── FOOTER (EXACT MATCH TO HOME.HTML) ──────────────────────────────── -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div>
+          <div class="footer-brand">✦ HR Mehndi</div>
+          <div class="footer-tagline">Authentic bridal henna & craft services crafted with tradition, natural organic henna, and timeless art.</div>
+          <div class="footer-social">
+            <a href="https://wa.me/919875288682" target="_blank" rel="noopener">WhatsApp</a>
+            <a href="tel:+919875288682">Call Us</a>
+          </div>
+        </div>
+        <div>
+          <div class="footer-col-title">Navigation</div>
+          <div class="footer-links">
+            <a href="{% url 'home' %}">Home</a>
+            <a href="{% url 'home' %}#portfolio">Portfolio</a>
+            <a href="{% url 'gallery' %}">Gallery</a>
+            <a href="{% url 'home' %}#services">Services</a>
+            <a href="{% url 'home' %}#aftercare">Aftercare</a>
+          </div>
+        </div>
+        <div>
+          <div class="footer-col-title">Contact & Booking</div>
+          <div class="footer-links">
+            <a href="https://wa.me/919875288682" target="_blank">📱 +91 98752 88682</a>
+            <span>📍 Doorstep Services Available</span>
+            <a href="{% url 'home' %}#booking" style="color:var(--gold-light); font-weight:600; margin-top:0.3rem; display:inline-block;">Book Appointment →</a>
+          </div>
+        </div>
+      </div>
+      <hr class="footer-divider">
+      <div class="footer-bottom">
+        <div>© 2026 HR Mehndi. All rights reserved.</div>
+        <div>Crafted for Authentic Henna Celebrations</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ── WHATSAPP FAB ───────────────────────────────────────────────────── -->
+  <a href="https://api.whatsapp.com/send?phone=919875288682&text=Hello%20HR%20Mehndi!%20I%20saw%20your%20gallery%20and%20would%20like%20to%20inquire." class="wa-fab" target="_blank" aria-label="Chat on WhatsApp">💬</a>
+
+  <!-- ── JAVASCRIPT LOGIC ───────────────────────────────────────────────── -->
+  <script>
+    // ── NAVBAR TOGGLE
+    function toggleNav() {
+      document.getElementById('navMobile').classList.toggle('open');
+    }
+    function closeNav() {
+      document.getElementById('navMobile').classList.remove('open');
+    }
+
+    // ── GALLERY ITEMS DATA
+    const galleryItems = [
+      {% for image in gallery_images %}
+        {
+          url: "{{ image.url }}",
+          title: "{{ image.title|escapejs }}",
+          caption: "{{ image.caption|escapejs }}",
+          category: "{{ image.category_name|escapejs }}",
+          slugs: "{{ image.category_slugs|escapejs }}"
+        }{% if not forloop.last %},{% endif %}
+      {% endfor %}
+    ];
+
+    let currentVisibleIndices = galleryItems.map((_, i) => i);
+    let activeLightboxIndex = 0;
+
+    // ── CATEGORY FILTERING
+    function filterGallery(categorySlug, btnElement) {
+      document.querySelectorAll('.filter-tab').forEach(tab => tab.classList.remove('active'));
+      btnElement.classList.add('active');
+
+      const cards = document.querySelectorAll('.gallery-card');
+      currentVisibleIndices = [];
+
+      cards.forEach((card, index) => {
+        const itemSlugs = card.getAttribute('data-category').split(' ');
+        const isOriginal = card.getAttribute('data-original') === 'true';
+
+        let show = false;
+        if (categorySlug === 'all') {
+          show = true;
+        } else if (categorySlug === 'originals') {
+          show = isOriginal;
+        } else if (itemSlugs.includes(categorySlug)) {
+          show = true;
+        }
+
+        if (show) {
+          card.style.display = 'block';
+          currentVisibleIndices.push(index);
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    // ── LIGHTBOX MODAL CONTROLS
+    function openLightbox(index) {
+      activeLightboxIndex = index;
+      updateLightboxContent();
+      document.getElementById('lightboxModal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox() {
+      document.getElementById('lightboxModal').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    function handleOverlayClick(event) {
+      if (event.target.id === 'lightboxModal') {
+        closeLightbox();
+      }
+    }
+
+    function updateLightboxContent() {
+      const item = galleryItems[activeLightboxIndex];
+      if (!item) return;
+
+      document.getElementById('lightboxImg').src = item.url;
+      document.getElementById('lightboxCategory').textContent = item.category || 'Mehndi Work';
+      document.getElementById('lightboxTitle').textContent = item.title || item.category || 'Mehndi Design';
+      document.getElementById('lightboxCaption').textContent = item.caption;
+
+      const posInVisible = currentVisibleIndices.indexOf(activeLightboxIndex) + 1;
+      const totalVisible = currentVisibleIndices.length > 0 ? currentVisibleIndices.length : galleryItems.length;
+      document.getElementById('lightboxCounter').textContent = `${posInVisible > 0 ? posInVisible : (activeLightboxIndex + 1)} / ${totalVisible}`;
+
+      // Update dynamic CTA links for the open design
+      const designTitle = item.title || item.category || 'Mehndi Design';
+      const encodedTitle = encodeURIComponent(designTitle);
+      const bookBtn = document.getElementById('lightboxBookBtn');
+      const waBtn = document.getElementById('lightboxWaBtn');
+      if (bookBtn) {
+        bookBtn.href = "{% url 'home' %}?design=" + encodedTitle + "#booking";
+      }
+      if (waBtn) {
+        waBtn.href = "https://api.whatsapp.com/send?phone=919875288682&text=" + encodeURIComponent("Hello HR Mehndi! I saw your gallery design \"" + designTitle + "\" and would like to book/inquire about it.");
+      }
+    }
+
+    function nextLightbox(event) {
+      if (event) event.stopPropagation();
+      if (currentVisibleIndices.length === 0) return;
+      let currentPos = currentVisibleIndices.indexOf(activeLightboxIndex);
+      if (currentPos === -1) currentPos = 0;
+      const nextPos = (currentPos + 1) % currentVisibleIndices.length;
+      activeLightboxIndex = currentVisibleIndices[nextPos];
+      updateLightboxContent();
+    }
+
+    function prevLightbox(event) {
+      if (event) event.stopPropagation();
+      if (currentVisibleIndices.length === 0) return;
+      let currentPos = currentVisibleIndices.indexOf(activeLightboxIndex);
+      if (currentPos === -1) currentPos = 0;
+      const prevPos = (currentPos - 1 + currentVisibleIndices.length) % currentVisibleIndices.length;
+      activeLightboxIndex = currentVisibleIndices[prevPos];
+      updateLightboxContent();
+    }
+
+    // KEYBOARD NAVIGATION FOR LIGHTBOX
+    document.addEventListener('keydown', function(e) {
+      const modal = document.getElementById('lightboxModal');
+      if (modal.classList.contains('open')) {
+        if (e.key === 'Escape') closeLightbox();
+        if (e.key === 'ArrowRight') nextLightbox();
+        if (e.key === 'ArrowLeft') prevLightbox();
+      }
+    });
+  </script>
+</body>
+</html>

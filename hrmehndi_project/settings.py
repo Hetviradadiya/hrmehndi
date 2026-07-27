@@ -87,6 +87,10 @@ CSRF_TRUSTED_ORIGINS = [
     'https://*.ngrok-free.app',
 ]
 
+LOGIN_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = '/my-bookings/'
+LOGOUT_REDIRECT_URL = '/'
+
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_ALLOW_ALL = True

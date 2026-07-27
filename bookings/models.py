@@ -1,5 +1,15 @@
 from django.db import models
 
+class Category(models.Model):
+    name = models.CharField(max_length=50, unique=True, help_text="e.g. Bridal, Arabic, Party, Crafts")
+    slug = models.SlugField(max_length=50, unique=True, help_text="Short name used for filtering (e.g. bridal, arabic, party, crafts)")
+
+    class Meta:
+        verbose_name_plural = 'Categories'
+
+    def __str__(self):
+        return self.name
+
 
 class BookingInquiry(models.Model):
     STATUS_CHOICES = [
@@ -17,6 +27,7 @@ class BookingInquiry(models.Model):
     service_type = models.CharField(max_length=100, default='Bridal Mehndi')
     number_of_people = models.IntegerField(default=1)
     notes = models.TextField(blank=True, null=True)
+    attachment = models.ImageField(upload_to='booking_attachments/', blank=True, null=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PENDING')
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -30,7 +41,8 @@ class BookingInquiry(models.Model):
 
 
 class MehndiDesign(models.Model):
-    title = models.CharField(max_length=150)
+    title = models.CharField(max_length=150, blank=True, null=True)
+    categories = models.ManyToManyField(Category, related_name='designs', blank=True)
     cover_image = models.ImageField(upload_to='covers/')
     description = models.TextField(blank=True, null=True)
     is_original_work = models.BooleanField(default=True)
@@ -42,7 +54,11 @@ class MehndiDesign(models.Model):
         verbose_name_plural = 'Mehndi Designs'
 
     def __str__(self):
-        return self.title
+        return self.title or f"Mehndi Design #{self.id}"
+
+    # Helper method to get category slugs as string for HTML filtering
+    def get_category_slugs(self):
+        return " ".join([cat.slug.lower() for cat in self.categories.all()])
 
 
 class DesignImage(models.Model):
@@ -55,4 +71,4 @@ class DesignImage(models.Model):
         verbose_name_plural = 'Design Images'
 
     def __str__(self):
-        return f"Image for {self.design.title}"
+        return f"Image for {self.design.title or self.design.id}"

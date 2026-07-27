@@ -1,0 +1,541 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bookings Dashboard · HR Mehndi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --crimson: #800020;
+      --crimson-light: #a0002a;
+      --gold: #c9a84c;
+      --bg: #080408;
+      --bg2: #100810;
+      --surface: rgba(255,255,255,0.04);
+      --surface-hover: rgba(255,255,255,0.07);
+      --border: rgba(255,255,255,0.08);
+      --text: #f0e8ec;
+      --muted: rgba(240,232,236,0.5);
+      --ff-display: 'Cormorant Garamond', serif;
+      --ff-body: 'Inter', sans-serif;
+      --pending: #f59e0b;
+      --confirmed: #3b82f6;
+      --completed: #22c55e;
+      --cancelled: #ef4444;
+      --radius: 14px;
+      --transition: 0.2s ease;
+    }
+
+    body {
+      font-family: var(--ff-body);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── BACKGROUND ── */
+    .bg-art {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse at 10% 0%, rgba(128,0,32,0.18) 0%, transparent 50%),
+        radial-gradient(ellipse at 90% 100%, rgba(201,168,76,0.07) 0%, transparent 50%);
+    }
+
+    /* ── LAYOUT ── */
+    .page-wrap {
+      position: relative; z-index: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    /* ── HEADER ── */
+    .dash-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .dash-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .dash-logo-mark {
+      width: 42px; height: 42px;
+      background: linear-gradient(135deg, var(--crimson), #5a001a);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+    }
+    .dash-title-group h1 {
+      font-family: var(--ff-display);
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1;
+    }
+    .dash-title-group span {
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .dash-back {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.85rem;
+      border: 1px solid var(--border);
+      padding: 0.45rem 1rem;
+      border-radius: 8px;
+      transition: all var(--transition);
+    }
+    .dash-back:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+    /* ── STATS CARDS ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px,1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: var(--radius);
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+    .stat-card:hover { transform: translateY(-2px); background: var(--surface-hover); }
+    .stat-card.active { border-color: rgba(255,255,255,0.2); }
+
+    .stat-card.s-total .stat-icon { color: var(--gold); }
+    .stat-card.s-pending .stat-icon { color: var(--pending); }
+    .stat-card.s-confirmed .stat-icon { color: var(--confirmed); }
+    .stat-card.s-completed .stat-icon { color: var(--completed); }
+    .stat-card.s-cancelled .stat-icon { color: var(--cancelled); }
+
+    .stat-card.s-total.active { border-color: var(--gold); box-shadow: 0 0 20px rgba(201,168,76,0.1); }
+    .stat-card.s-pending.active { border-color: var(--pending); box-shadow: 0 0 20px rgba(245,158,11,0.1); }
+    .stat-card.s-confirmed.active { border-color: var(--confirmed); box-shadow: 0 0 20px rgba(59,130,246,0.1); }
+    .stat-card.s-completed.active { border-color: var(--completed); box-shadow: 0 0 20px rgba(34,197,94,0.1); }
+    .stat-card.s-cancelled.active { border-color: var(--cancelled); box-shadow: 0 0 20px rgba(239,68,68,0.1); }
+
+    .stat-icon { font-size: 1.4rem; }
+    .stat-num {
+      font-family: var(--ff-display);
+      font-size: 2.4rem;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    /* ── SECTION HEADER ── */
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+    }
+    .section-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+    }
+    .filter-badge {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .filter-badge strong { color: var(--text); }
+
+    /* ── BOOKING CARDS ── */
+    .bookings-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .booking-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 1rem;
+      align-items: start;
+      transition: all var(--transition);
+    }
+    .booking-card:hover { background: var(--surface-hover); border-color: rgba(255,255,255,0.12); }
+
+    .booking-card.status-PENDING { border-left: 3px solid var(--pending); }
+    .booking-card.status-CONFIRMED { border-left: 3px solid var(--confirmed); }
+    .booking-card.status-COMPLETED { border-left: 3px solid var(--completed); }
+    .booking-card.status-CANCELLED { border-left: 3px solid var(--cancelled); }
+
+    .booking-main {}
+    .booking-top {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 0.6rem;
+    }
+    .booking-name {
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--text);
+    }
+    .booking-service {
+      font-size: 0.78rem;
+      padding: 0.2rem 0.65rem;
+      border-radius: 20px;
+      background: rgba(201,168,76,0.1);
+      color: var(--gold);
+      border: 1px solid rgba(201,168,76,0.2);
+    }
+    .booking-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1.5rem;
+    }
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    .meta-item .icon { font-size: 0.9rem; }
+
+    .booking-notes {
+      margin-top: 0.75rem;
+      padding: 0.65rem 0.9rem;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 8px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .booking-attachment {
+      margin-top: 0.6rem;
+    }
+    .booking-attachment a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.8rem;
+      color: var(--gold);
+      text-decoration: none;
+      border: 1px solid rgba(201,168,76,0.25);
+      padding: 0.3rem 0.75rem;
+      border-radius: 6px;
+      transition: all var(--transition);
+    }
+    .booking-attachment a:hover { background: rgba(201,168,76,0.1); }
+
+    .booking-id {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.2);
+      margin-top: 0.5rem;
+    }
+
+    /* ── STATUS CONTROLS ── */
+    .booking-controls {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.75rem;
+      min-width: 140px;
+    }
+    .status-badge {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .badge-PENDING { background: rgba(245,158,11,0.15); color: var(--pending); border: 1px solid rgba(245,158,11,0.3); }
+    .badge-CONFIRMED { background: rgba(59,130,246,0.15); color: var(--confirmed); border: 1px solid rgba(59,130,246,0.3); }
+    .badge-COMPLETED { background: rgba(34,197,94,0.15); color: var(--completed); border: 1px solid rgba(34,197,94,0.3); }
+    .badge-CANCELLED { background: rgba(239,68,68,0.15); color: var(--cancelled); border: 1px solid rgba(239,68,68,0.3); }
+
+    .status-select {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.8rem;
+      font-family: var(--ff-body);
+      padding: 0.4rem 0.6rem;
+      cursor: pointer;
+      outline: none;
+      transition: border-color var(--transition);
+      width: 100%;
+    }
+    .status-select:focus { border-color: rgba(255,255,255,0.2); }
+    .status-select option { background: #200a10; }
+
+    .booking-date-created {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.25);
+      text-align: right;
+    }
+
+    /* ── EMPTY STATE ── */
+    .empty-dash {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--muted);
+    }
+    .empty-dash .big-em { font-size: 3rem; display: block; margin-bottom: 1rem; opacity: 0.5; }
+    .empty-dash h3 {
+      font-family: var(--ff-display);
+      font-size: 1.4rem;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+    }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed;
+      bottom: 2rem; right: 2rem;
+      background: #1a1a2e;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 0.85rem 1.25rem;
+      font-size: 0.85rem;
+      color: var(--text);
+      z-index: 9999;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.3s ease;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.success { border-color: rgba(34,197,94,0.3); }
+    .toast.error { border-color: rgba(239,68,68,0.3); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      .booking-card { grid-template-columns: 1fr; }
+      .booking-controls { align-items: flex-start; flex-direction: row; flex-wrap: wrap; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+<div class="bg-art"></div>
+
+<div class="page-wrap">
+
+  <!-- ── HEADER ── -->
+  <header class="dash-header">
+    <div class="dash-brand">
+      <div class="dash-logo-mark">✦</div>
+      <div class="dash-title-group">
+        <h1>HR Mehndi</h1>
+        <span>Bookings Dashboard</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:0.75rem; align-items:center;">
+      <a href="/" class="dash-back">← Visit Site</a>
+      <a href="{% url 'logout' %}" class="dash-back">Logout</a>
+    </div>
+  </header>
+
+  <!-- ── STATS GRID ── -->
+  <div class="stats-grid">
+    <a href="?status=ALL" class="stat-card s-total {% if status_filter == 'ALL' %}active{% endif %}">
+      <span class="stat-icon">📋</span>
+      <div class="stat-num">{{ counts.total }}</div>
+      <div class="stat-label">Total Bookings</div>
+    </a>
+    <a href="?status=PENDING" class="stat-card s-pending {% if status_filter == 'PENDING' %}active{% endif %}">
+      <span class="stat-icon">⏳</span>
+      <div class="stat-num">{{ counts.pending }}</div>
+      <div class="stat-label">Pending</div>
+    </a>
+    <a href="?status=CONFIRMED" class="stat-card s-confirmed {% if status_filter == 'CONFIRMED' %}active{% endif %}">
+      <span class="stat-icon">✅</span>
+      <div class="stat-num">{{ counts.confirmed }}</div>
+      <div class="stat-label">Confirmed</div>
+    </a>
+    <a href="?status=COMPLETED" class="stat-card s-completed {% if status_filter == 'COMPLETED' %}active{% endif %}">
+      <span class="stat-icon">🎉</span>
+      <div class="stat-num">{{ counts.completed }}</div>
+      <div class="stat-label">Completed</div>
+    </a>
+    <a href="?status=CANCELLED" class="stat-card s-cancelled {% if status_filter == 'CANCELLED' %}active{% endif %}">
+      <span class="stat-icon">❌</span>
+      <div class="stat-num">{{ counts.cancelled }}</div>
+      <div class="stat-label">Cancelled</div>
+    </a>
+  </div>
+
+  <!-- ── SECTION HEAD ── -->
+  <div class="section-head">
+    <div class="section-label">Booking Inquiries</div>
+    <div class="filter-badge">
+      Showing: <strong>
+        {% if status_filter == 'ALL' %}All Bookings
+        {% elif status_filter == 'PENDING' %}Pending
+        {% elif status_filter == 'CONFIRMED' %}Confirmed
+        {% elif status_filter == 'COMPLETED' %}Completed
+        {% elif status_filter == 'CANCELLED' %}Cancelled
+        {% endif %}
+      </strong> ({{ bookings|length }})
+    </div>
+  </div>
+
+  <!-- ── BOOKINGS LIST ── -->
+  <div class="bookings-list">
+    {% if bookings %}
+      {% for b in bookings %}
+      <div class="booking-card status-{{ b.status }}" id="card-{{ b.id }}">
+        <div class="booking-main">
+          <div class="booking-top">
+            <div class="booking-name">{{ b.client_name }}</div>
+            <div class="booking-service">{{ b.service_type }}</div>
+          </div>
+          <div class="booking-meta">
+            <div class="meta-item"><span class="icon">📞</span> {{ b.phone_number }}</div>
+            <div class="meta-item"><span class="icon">📅</span> {{ b.event_date }}</div>
+            <div class="meta-item"><span class="icon">📍</span> {{ b.event_location }}</div>
+            <div class="meta-item"><span class="icon">👥</span> {{ b.number_of_people }} guest{% if b.number_of_people != 1 %}s{% endif %}</div>
+            {% if b.email %}<div class="meta-item"><span class="icon">✉️</span> {{ b.email }}</div>{% endif %}
+          </div>
+          {% if b.notes %}
+            <div class="booking-notes">📝 {{ b.notes }}</div>
+          {% endif %}
+          {% if b.attachment %}
+            <div class="booking-attachment">
+              <a href="{{ b.attachment.url }}" target="_blank">🖼️ View Design Reference</a>
+            </div>
+          {% endif %}
+          <div class="booking-id">#{{ b.id }} · Submitted {{ b.created_at|date:"d M Y, g:i A" }}</div>
+        </div>
+
+        <div class="booking-controls">
+          <span class="status-badge badge-{{ b.status }}" id="badge-{{ b.id }}">{{ b.status }}</span>
+          <select class="status-select" id="select-{{ b.id }}" onchange="updateStatus({{ b.id }}, this.value)" title="Change status">
+            <option value="PENDING"   {% if b.status == 'PENDING' %}selected{% endif %}>⏳ Pending</option>
+            <option value="CONFIRMED" {% if b.status == 'CONFIRMED' %}selected{% endif %}>✅ Confirmed</option>
+            <option value="COMPLETED" {% if b.status == 'COMPLETED' %}selected{% endif %}>🎉 Completed</option>
+            <option value="CANCELLED" {% if b.status == 'CANCELLED' %}selected{% endif %}>❌ Cancelled</option>
+          </select>
+          <div class="booking-date-created">{{ b.created_at|date:"d M Y" }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-dash">
+        <span class="big-em">🌸</span>
+        <h3>No bookings found</h3>
+        <p>{% if status_filter != 'ALL' %}No {{ status_filter|lower }} bookings yet.{% else %}No booking inquiries submitted yet.{% endif %}</p>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- ── TOAST ── -->
+<div class="toast" id="toast"></div>
+
+<script>
+  const STATUS_CLASSES = {
+    PENDING: 'badge-PENDING',
+    CONFIRMED: 'badge-CONFIRMED',
+    COMPLETED: 'badge-COMPLETED',
+    CANCELLED: 'badge-CANCELLED',
+  };
+  const STATUS_LABELS = {
+    PENDING: 'PENDING',
+    CONFIRMED: 'CONFIRMED',
+    COMPLETED: 'COMPLETED',
+    CANCELLED: 'CANCELLED',
+  };
+
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast ' + type + ' show';
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => { t.className = 'toast'; }, 3000);
+  }
+
+  function updateStatus(bookingId, newStatus) {
+    const badge = document.getElementById('badge-' + bookingId);
+    const card  = document.getElementById('card-' + bookingId);
+    const sel   = document.getElementById('select-' + bookingId);
+    sel.disabled = true;
+
+    const formData = new FormData();
+    formData.append('status', newStatus);
+    formData.append('csrfmiddlewaretoken', getCsrf());
+
+    fetch(`/my-bookings/update/${bookingId}/`, {
+      method: 'POST',
+      body: formData,
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        // Update badge
+        badge.className = 'status-badge ' + STATUS_CLASSES[newStatus];
+        badge.textContent = STATUS_LABELS[newStatus];
+        // Update card border
+        card.className = card.className.replace(/status-\w+/, 'status-' + newStatus);
+        showToast('✓ Status updated to ' + newStatus.toLowerCase(), 'success');
+      } else {
+        showToast('Error: ' + (data.error || 'Update failed'), 'error');
+      }
+    })
+    .catch(() => showToast('Network error — try again', 'error'))
+    .finally(() => { sel.disabled = false; });
+  }
+
+  function getCsrf() {
+    const m = document.cookie.match(/csrftoken=([^;]+)/);
+    return m ? m[1] : '';
+  }
+</script>
+
+</body>
+</html>
