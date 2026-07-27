@@ -253,21 +253,37 @@
     }
 
     .booking-attachment {
-      margin-top: 0.6rem;
+      margin-top: 0.8rem;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 8px;
+      padding: 0.75rem;
+    }
+    .attachment-label {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--gold);
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
     .booking-attachment a {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      font-size: 0.8rem;
-      color: var(--gold);
-      text-decoration: none;
-      border: 1px solid rgba(201,168,76,0.25);
-      padding: 0.3rem 0.75rem;
-      border-radius: 6px;
-      transition: all var(--transition);
+      display: inline-block;
     }
-    .booking-attachment a:hover { background: rgba(201,168,76,0.1); }
+    .attachment-thumb {
+      max-width: 100%;
+      max-height: 240px;
+      border-radius: 6px;
+      object-fit: contain;
+      display: block;
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: transform var(--transition), border-color var(--transition);
+      background: rgba(0,0,0,0.2);
+    }
+    .booking-attachment a:hover .attachment-thumb {
+      transform: scale(1.02);
+      border-color: var(--gold);
+    }
 
     .booking-id {
       font-size: 0.7rem;
@@ -446,7 +462,10 @@
           {% endif %}
           {% if b.attachment %}
             <div class="booking-attachment">
-              <a href="{{ b.attachment.url }}" target="_blank">🖼️ View Design Reference</a>
+              <span class="attachment-label">🖼️ Design Reference:</span>
+              <a href="{{ b.attachment.url }}" target="_blank" title="Click to view full image">
+                <img src="{{ b.attachment.url }}" alt="Design Reference" class="attachment-thumb">
+              </a>
             </div>
           {% endif %}
           <div class="booking-id">#{{ b.id }} · Submitted {{ b.created_at|date:"d M Y, g:i A" }}</div>
