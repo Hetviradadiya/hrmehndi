@@ -1,0 +1,24 @@
+/* HR Mehndi - Custom Styles */
+/* Tailwind handles most styling; add overrides here if needed */
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Smooth image transition in modal */
+#main-img-* {
+    transition: opacity 0.2s ease;
+}
+
+/* Custom scrollbar for thumbnail row */
+.flex::-webkit-scrollbar {
+    height: 4px;
+}
+.flex::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+.flex::-webkit-scrollbar-thumb {
+    background: #e11d48;
+    border-radius: 10px;
+}
