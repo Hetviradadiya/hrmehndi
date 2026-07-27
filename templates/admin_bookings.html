@@ -206,7 +206,16 @@
     .booking-card.status-COMPLETED { border-left: 3px solid var(--completed); }
     .booking-card.status-CANCELLED { border-left: 3px solid var(--cancelled); }
 
-    .booking-main {}
+    .booking-main {
+      display: flex;
+      gap: 1.5rem;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+    .booking-details {
+      flex: 1;
+      min-width: 260px;
+    }
     .booking-top {
       display: flex;
       align-items: center;
@@ -253,11 +262,12 @@
     }
 
     .booking-attachment {
-      margin-top: 0.8rem;
       background: rgba(255,255,255,0.02);
       border: 1px solid rgba(255,255,255,0.05);
       border-radius: 8px;
       padding: 0.75rem;
+      flex-shrink: 0;
+      width: 160px;
     }
     .attachment-label {
       display: block;
@@ -271,10 +281,10 @@
       display: inline-block;
     }
     .attachment-thumb {
-      max-width: 100%;
-      max-height: 240px;
+      width: 100%;
+      height: 140px;
       border-radius: 6px;
-      object-fit: contain;
+      object-fit: cover;
       display: block;
       border: 1px solid rgba(255,255,255,0.1);
       transition: transform var(--transition), border-color var(--transition);
@@ -368,6 +378,52 @@
     .toast.success { border-color: rgba(34,197,94,0.3); }
     .toast.error { border-color: rgba(239,68,68,0.3); }
 
+    /* ── IMAGE MODAL ── */
+    .img-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(5px);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--transition);
+    }
+    .img-modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .img-modal-content {
+      max-width: 90vw;
+      max-height: 90vh;
+      position: relative;
+    }
+    .img-modal-content img {
+      max-width: 100%;
+      max-height: 90vh;
+      border-radius: 8px;
+      object-fit: contain;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    }
+    .img-modal-close {
+      position: absolute;
+      top: -2rem;
+      right: -2rem;
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 2.5rem;
+      cursor: pointer;
+      line-height: 1;
+      opacity: 0.7;
+      transition: opacity var(--transition);
+    }
+    .img-modal-close:hover { opacity: 1; }
+    @media(max-width: 768px) { .img-modal-close { top: -3rem; right: 0; } }
+
     /* ── RESPONSIVE ── */
     @media (max-width: 600px) {
       .booking-card { grid-template-columns: 1fr; }
@@ -446,29 +502,31 @@
       {% for b in bookings %}
       <div class="booking-card status-{{ b.status }}" id="card-{{ b.id }}">
         <div class="booking-main">
-          <div class="booking-top">
-            <div class="booking-name">{{ b.client_name }}</div>
-            <div class="booking-service">{{ b.service_type }}</div>
+          <div class="booking-details">
+            <div class="booking-top">
+              <div class="booking-name">{{ b.client_name }}</div>
+              <div class="booking-service">{{ b.service_type }}</div>
+            </div>
+            <div class="booking-meta">
+              <div class="meta-item"><span class="icon">📞</span> {{ b.phone_number }}</div>
+              <div class="meta-item"><span class="icon">📅</span> {{ b.event_date }}</div>
+              <div class="meta-item"><span class="icon">📍</span> {{ b.event_location }}</div>
+              <div class="meta-item"><span class="icon">👥</span> {{ b.number_of_people }} guest{% if b.number_of_people != 1 %}s{% endif %}</div>
+              {% if b.email %}<div class="meta-item"><span class="icon">✉️</span> {{ b.email }}</div>{% endif %}
+            </div>
+            {% if b.notes %}
+              <div class="booking-notes">📝 {{ b.notes }}</div>
+            {% endif %}
+            <div class="booking-id">#{{ b.id }} · Submitted {{ b.created_at|date:"d M Y, g:i A" }}</div>
           </div>
-          <div class="booking-meta">
-            <div class="meta-item"><span class="icon">📞</span> {{ b.phone_number }}</div>
-            <div class="meta-item"><span class="icon">📅</span> {{ b.event_date }}</div>
-            <div class="meta-item"><span class="icon">📍</span> {{ b.event_location }}</div>
-            <div class="meta-item"><span class="icon">👥</span> {{ b.number_of_people }} guest{% if b.number_of_people != 1 %}s{% endif %}</div>
-            {% if b.email %}<div class="meta-item"><span class="icon">✉️</span> {{ b.email }}</div>{% endif %}
-          </div>
-          {% if b.notes %}
-            <div class="booking-notes">📝 {{ b.notes }}</div>
-          {% endif %}
           {% if b.attachment %}
             <div class="booking-attachment">
               <span class="attachment-label">🖼️ Design Reference:</span>
-              <a href="{{ b.attachment.url }}" target="_blank" title="Click to view full image">
+              <a href="javascript:void(0)" onclick="openImageModal('{{ b.attachment.url }}')" title="Click to view full image">
                 <img src="{{ b.attachment.url }}" alt="Design Reference" class="attachment-thumb">
               </a>
             </div>
           {% endif %}
-          <div class="booking-id">#{{ b.id }} · Submitted {{ b.created_at|date:"d M Y, g:i A" }}</div>
         </div>
 
         <div class="booking-controls">
@@ -492,6 +550,14 @@
     {% endif %}
   </div>
 
+</div>
+
+<!-- ── IMAGE MODAL ── -->
+<div class="img-modal-overlay" id="imgModal" onclick="closeImageModal()">
+  <div class="img-modal-content" onclick="event.stopPropagation()">
+    <button class="img-modal-close" onclick="closeImageModal()">×</button>
+    <img id="modalImage" src="" alt="Full Design Reference">
+  </div>
 </div>
 
 <!-- ── TOAST ── -->
@@ -553,6 +619,15 @@
   function getCsrf() {
     const m = document.cookie.match(/csrftoken=([^;]+)/);
     return m ? m[1] : '';
+  }
+
+  function openImageModal(url) {
+    document.getElementById('modalImage').src = url;
+    document.getElementById('imgModal').classList.add('active');
+  }
+
+  function closeImageModal() {
+    document.getElementById('imgModal').classList.remove('active');
   }
 </script>
 
