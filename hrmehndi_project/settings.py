@@ -17,9 +17,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'bookings',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -79,11 +83,28 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
+}
+
+
+
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost',
     'http://127.0.0.1',
-    'https://localhost',
-    'https://127.0.0.1',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://192.168.1.22:2000',
+    'http://192.168.1.22:5173',
+    'http://192.168.1.22:3000',
+    'http://192.168.1.22',
     'https://*.ngrok-free.app',
 ]
 
@@ -91,7 +112,24 @@ LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/my-bookings/'
 LOGOUT_REDIRECT_URL = '/'
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = True 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_ALLOW_ALL = True
-CORS_ALLOW_HEADERS = '*'
+
+from corsheaders.defaults import default_headers
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'content-disposition',
+]
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^http://.*$",
+    r"^https://.*$",
+]

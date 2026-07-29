@@ -2,8 +2,15 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.home_view, name='home'),
-    path('gallery/', views.gallery_view, name='gallery'),
-    path('my-bookings/', views.admin_bookings_view, name='admin_bookings'),
-    path('my-bookings/update/<int:booking_id>/', views.update_booking_status, name='update_booking_status'),
+    path('api/categories/', views.category_list_api, name='api_categories'),
+    path('api/gallery/', views.gallery_api, name='api_gallery'),
+    path('api/bookings/create/', views.create_booking_api, name='api_create_booking'),
+    path('api/my-bookings/', views.admin_bookings_api, name='api_admin_bookings'),
+    path('api/my-bookings/update/<int:booking_id>/', views.update_booking_status_api, name='api_update_booking_status'),
+    path('api/auth/login/', views.login_api, name='api_login'),
+    path('api/auth/logout/', views.logout_api, name='api_logout'),
+    path('api/auth/me/', views.user_info_api, name='api_user_info'),
+    path('api/services/', views.service_list_api, name='api_services'),
 ]
+
+

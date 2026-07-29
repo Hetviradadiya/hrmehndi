@@ -1,121 +1,104 @@
 import urllib.parse
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
-from django.views.decorators.http import require_POST
-from .models import MehndiDesign, BookingInquiry, Category
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.authtoken.models import Token
+from rest_framework.authentication import TokenAuthentication
+from django.shortcuts import get_object_or_404
+from django.contrib.auth import authenticate, login, logout
+from django.views.decorators.csrf import csrf_exempt
 
-def home_view(request):
-    # Homepage portfolio shows ONLY real original works
-    designs = MehndiDesign.objects.filter(is_original_work=True).order_by('-created_at')
 
-    # Show all categories in the UI, even if they have no designs yet.
+
+
+from .models import MehndiDesign, BookingInquiry, Category, ServicePackage
+from .serializers import (
+    CategorySerializer, 
+    MehndiDesignSerializer, 
+    BookingInquirySerializer,
+    ServicePackageSerializer
+)
+
+
+# 1. CATEGORIES API
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def category_list_api(request):
     categories = Category.objects.all().order_by('name')
+    serializer = CategorySerializer(categories, many=True)
+    return Response(serializer.data)
 
-    # categories = MehndiDesign.objects.values_list('service_type', flat=True).distinct()\
 
-    if request.method == 'POST':
-        client_name = request.POST.get('client_name')
-        phone_number = request.POST.get('phone_number')
-        event_date = request.POST.get('event_date')
-        event_location = request.POST.get('event_location')
-        service_type = request.POST.get('service_type')
-        number_of_people = request.POST.get('number_of_people', 1)
-        notes = request.POST.get('notes', '')
-        attachment = request.FILES.get('attachment')
+# 2. GALLERY & PORTFOLIO DESIGNS API
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def gallery_api(request):
+    designs = MehndiDesign.objects.prefetch_related('categories', 'all_images').order_by('-created_at')
+    
+    # Check if request is filtering only original works (for Home portfolio)
+    originals_only = request.GET.get('original')
+    if originals_only == 'true':
+        designs = designs.filter(is_original_work=True)
 
-        inquiry = BookingInquiry.objects.create(
-            client_name=client_name,
-            phone_number=phone_number,
-            event_date=event_date,
-            event_location=event_location,
-            service_type=service_type,
-            number_of_people=number_of_people,
-            notes=notes,
-            attachment=attachment
-        )
+    serializer = MehndiDesignSerializer(designs, many=True, context={'request': request})
+    return Response(serializer.data)
 
+
+# 3. CREATE BOOKING INQUIRY API
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def create_booking_api(request):
+    serializer = BookingInquirySerializer(data=request.data)
+    if serializer.is_valid():
+        inquiry = serializer.save()
+
+        # Build WhatsApp Redirect Link
         your_whatsapp_number = "919875288682"
         message_text = f"""Hello HETVI! 👋
 I would like to book a session. Here are my details:
 
-👤 *Name:* {client_name}
-📞 *Phone:* {phone_number}
-📅 *Event Date:* {event_date}
-📍 *Location:* {event_location}
-✨ *Service:* {service_type}
-👥 *Guests:* {number_of_people}
-📝 *Notes:* {notes or 'N/A'}
+👤 *Name:* {inquiry.client_name}
+📞 *Phone:* {inquiry.phone_number}
+📅 *Event Date:* {inquiry.event_date}
+📍 *Location:* {inquiry.event_location}
+✨ *Service:* {inquiry.service_type}
+👥 *Guests:* {inquiry.number_of_people}
+📝 *Notes:* {inquiry.notes or 'N/A'}
 """
 
         if inquiry.attachment:
             attachment_url = request.build_absolute_uri(inquiry.attachment.url)
-            message_text += f"""
-🖼️ *Design Reference Image:*
-👉 {attachment_url}
-_(Tap the link above to view the selected design)_
-"""
+            message_text += f"\n🖼️ *Design Reference Image:*\n👉 {attachment_url}\n"
 
         message_text += "\nPlease confirm availability! 🙏"
-
         encoded_message = urllib.parse.quote(message_text)
         whatsapp_url = f"https://api.whatsapp.com/send?phone={your_whatsapp_number}&text={encoded_message}"
-        return redirect(whatsapp_url)
 
-    return render(request, 'home.html', {
-        'designs': designs,
-        'categories': categories
-    })
+        return Response({
+            'status': True,
+            'booking': serializer.data,
+            'whatsapp_url': whatsapp_url
+        }, status=status.HTTP_201_CREATED)
 
-
-def gallery_view(request):
-    gallery_images = []
-    designs = MehndiDesign.objects.prefetch_related('categories', 'all_images').order_by('-created_at')
-    for design in designs:
-        cats = [c.slug.lower() for c in design.categories.all()]
-        cat_names = [c.name for c in design.categories.all()]
-        category_display = ' · '.join(cat_names) if cat_names else 'General'
-        display_title = design.title or category_display
-        gallery_images.append({
-            'url': design.cover_image.url,
-            'title': display_title,
-            'caption': design.description or '',
-            'category_slugs': ' '.join(cats) if cats else 'general',
-            'category_name': category_display,
-            'is_original': design.is_original_work,
-        })
-        for img in design.all_images.all():
-            gallery_images.append({
-                'url': img.image.url,
-                'title': display_title,
-                'caption': img.caption or design.description or '',
-                'category_slugs': ' '.join(cats) if cats else 'general',
-                'category_name': category_display,
-                'is_original': design.is_original_work,
-            })
-
-    categories = Category.objects.all().order_by('name')
-
-    return render(request, 'gallery.html', {
-        'gallery_images': gallery_images,
-        'categories': categories,
-    })
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@login_required
-def admin_bookings_view(request):
-    """Custom admin dashboard — protected by login."""
-    # Status filter
+# 4. ADMIN BOOKINGS DASHBOARD API
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def admin_bookings_api(request):
     status_filter = request.GET.get('status', 'ALL')
-
     all_bookings = BookingInquiry.objects.all().order_by('-created_at')
 
     if status_filter != 'ALL':
-        bookings = all_bookings.filter(status=status_filter)
+        filtered_bookings = all_bookings.filter(status=status_filter)
     else:
-        bookings = all_bookings
+        filtered_bookings = all_bookings
 
-    # Stats counts
+    serializer = BookingInquirySerializer(filtered_bookings, many=True, context={'request': request})
+
     counts = {
         'total': all_bookings.count(),
         'pending': all_bookings.filter(status='PENDING').count(),
@@ -124,24 +107,104 @@ def admin_bookings_view(request):
         'cancelled': all_bookings.filter(status='CANCELLED').count(),
     }
 
-    return render(request, 'admin_bookings.html', {
-        'bookings': bookings,
+    return Response({
+        'bookings': serializer.data,
         'counts': counts,
-        'status_filter': status_filter,
+        'status_filter': status_filter
     })
 
 
-@login_required
-@require_POST
-def update_booking_status(request, booking_id):
-    """AJAX endpoint to update booking status."""
+# 5. UPDATE BOOKING STATUS API
+@api_view(['PATCH', 'POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def update_booking_status_api(request, booking_id):
+
     booking = get_object_or_404(BookingInquiry, id=booking_id)
-    new_status = request.POST.get('status')
+    new_status = request.data.get('status')
     valid_statuses = [s[0] for s in BookingInquiry.STATUS_CHOICES]
 
     if new_status not in valid_statuses:
-        return JsonResponse({'error': 'Invalid status'}, status=400)
+        return Response({'error': 'Invalid status'}, status=status.HTTP_400_BAD_REQUEST)
 
     booking.status = new_status
     booking.save()
-    return JsonResponse({'success': True, 'new_status': new_status})
+    return Response({'status': True, 'new_status': new_status})
+
+
+# 6. AUTH LOGIN API
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([AllowAny])
+@authentication_classes([])
+def login_api(request):
+    username = request.data.get('username')
+    password = request.data.get('password')
+
+    if not username or not password:
+        return Response({'status': False, 'error': 'Please provide both username and password.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    user = authenticate(request, username=username, password=password)
+    if user is not None:
+        login(request, user)
+        token, _ = Token.objects.get_or_create(user=user)
+        return Response({
+            'status': True,
+            'token': f"Token {token.key}",
+            'user': {
+
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'is_staff': user.is_staff,
+                'is_superuser': user.is_superuser
+            }
+        })
+    else:
+        return Response({'status': False, 'error': 'Invalid credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+# 7. AUTH LOGOUT API
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def logout_api(request):
+    if request.user and request.user.is_authenticated:
+        Token.objects.filter(user=request.user).delete()
+    logout(request)
+    return Response({'status': True, 'message': 'Logged out successfully.'})
+
+
+# 8. CURRENT USER INFO API
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def user_info_api(request):
+    if request.user and request.user.is_authenticated:
+        token, _ = Token.objects.get_or_create(user=request.user)
+        return Response({
+            'status': True,
+            'is_authenticated': True,
+            'token': f"Token {token.key}",
+            'user': {
+
+                'id': request.user.id,
+                'username': request.user.username,
+                'email': request.user.email,
+                'is_staff': request.user.is_staff,
+                'is_superuser': request.user.is_superuser
+            }
+        })
+    return Response({
+        'status': False,
+        'is_authenticated': False,
+        'user': None
+    })
+
+
+
+# 9. SERVICE PACKAGES API
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def service_list_api(request):
+    services = ServicePackage.objects.filter(is_active=True).order_by('order', 'id')
+    serializer = ServicePackageSerializer(services, many=True)
+    return Response(serializer.data)

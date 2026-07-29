@@ -72,3 +72,23 @@ class DesignImage(models.Model):
 
     def __str__(self):
         return f"Image for {self.design.title or self.design.id}"
+
+
+class ServicePackage(models.Model):
+    title = models.CharField(max_length=100)
+    icon = models.CharField(max_length=50, blank=True, null=True, help_text="Emoji or icon identifier (e.g. 💍, 🎉, 🌿, 🎨)")
+    price = models.CharField(max_length=50, help_text="e.g. ₹2,500+ or ₹250/person")
+    duration = models.CharField(max_length=50, help_text="e.g. 10-12 hrs or 1-2 hrs/person")
+    description = models.TextField()
+    features = models.JSONField(default=list, help_text="List of feature bullet points")
+    is_active = models.BooleanField(default=True)
+    order = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['order', 'id']
+        verbose_name = 'Service Package'
+        verbose_name_plural = 'Service Packages'
+
+    def __str__(self):
+        return self.title
