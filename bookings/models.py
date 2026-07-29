@@ -92,3 +92,20 @@ class ServicePackage(models.Model):
 
     def __str__(self):
         return self.title
+
+class Reel(models.Model):
+    title = models.CharField(max_length=150,blank=True, null=True,)
+    video_file = models.FileField(upload_to='reels/videos/')
+    external_url = models.URLField(blank=True, null=True)
+    thumbnail = models.ImageField(upload_to='reels/thumbnails/', blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Reel / Video'
+        verbose_name_plural = 'Reels / Videos'
+
+    def __str__(self):
+        return self.title or f"Reel #{self.id}"

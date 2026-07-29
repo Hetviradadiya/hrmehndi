@@ -8,20 +8,46 @@ from rest_framework.authentication import TokenAuthentication
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework import viewsets
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+
+from bookings.models import *
+from bookings.serializers import *
 
 
+class MehndiDesignViewSet(viewsets.ModelViewSet):
+    queryset = MehndiDesign.objects.all().order_by('-created_at')
+    serializer_class = MehndiDesignSerializer
+    authentication_classes = [TokenAuthentication]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    # Dynamically set permissions: GET is open to anyone, CUD (Create/Update/Delete) requires Admin Auth
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [AllowAny()]
+        return [IsAuthenticated()]
+
+    # Handle multiple gallery images upload during create/update
+    def perform_create(self, serializer):
+        design = serializer.save()
+        self._handle_gallery_images(design)
+
+    def perform_update(self, serializer):
+        design = serializer.save()
+        self._handle_gallery_images(design)
+
+    def _handle_gallery_images(self, design):
+        gallery_images = self.request.FILES.getlist('gallery_images')
+        for img in gallery_images:
+            DesignImage.objects.create(design=design, image=img)
+
+class ReelViewSet(viewsets.ModelViewSet):
+    queryset = Reel.objects.filter(is_active=True).order_by('-created_at')
+    serializer_class = ReelSerializer
+    authentication_classes = [TokenAuthentication]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
 
-from .models import MehndiDesign, BookingInquiry, Category, ServicePackage
-from .serializers import (
-    CategorySerializer, 
-    MehndiDesignSerializer, 
-    BookingInquirySerializer,
-    ServicePackageSerializer
-)
-
-
-# 1. CATEGORIES API
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def category_list_api(request):
@@ -30,7 +56,6 @@ def category_list_api(request):
     return Response(serializer.data)
 
 
-# 2. GALLERY & PORTFOLIO DESIGNS API
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def gallery_api(request):
@@ -45,7 +70,6 @@ def gallery_api(request):
     return Response(serializer.data)
 
 
-# 3. CREATE BOOKING INQUIRY API
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def create_booking_api(request):
@@ -84,7 +108,6 @@ I would like to book a session. Here are my details:
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# 4. ADMIN BOOKINGS DASHBOARD API
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -114,7 +137,6 @@ def admin_bookings_api(request):
     })
 
 
-# 5. UPDATE BOOKING STATUS API
 @api_view(['PATCH', 'POST'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -132,7 +154,6 @@ def update_booking_status_api(request, booking_id):
     return Response({'status': True, 'new_status': new_status})
 
 
-# 6. AUTH LOGIN API
 @csrf_exempt
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -164,7 +185,6 @@ def login_api(request):
         return Response({'status': False, 'error': 'Invalid credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
-# 7. AUTH LOGOUT API
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def logout_api(request):
@@ -174,7 +194,6 @@ def logout_api(request):
     return Response({'status': True, 'message': 'Logged out successfully.'})
 
 
-# 8. CURRENT USER INFO API
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def user_info_api(request):
@@ -200,8 +219,6 @@ def user_info_api(request):
     })
 
 
-
-# 9. SERVICE PACKAGES API
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def service_list_api(request):

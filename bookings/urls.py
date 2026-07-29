@@ -1,5 +1,10 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from . import views
+
+router = DefaultRouter()
+router.register(r'products', views.MehndiDesignViewSet, basename='product')
+router.register(r'reels', views.ReelViewSet, basename='reel')
 
 urlpatterns = [
     path('api/categories/', views.category_list_api, name='api_categories'),
@@ -11,6 +16,8 @@ urlpatterns = [
     path('api/auth/logout/', views.logout_api, name='api_logout'),
     path('api/auth/me/', views.user_info_api, name='api_user_info'),
     path('api/services/', views.service_list_api, name='api_services'),
+
+    path('api/', include(router.urls)),
 ]
 
 

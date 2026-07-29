@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Category, BookingInquiry, MehndiDesign, DesignImage, ServicePackage
+from .models import Category, BookingInquiry, MehndiDesign, DesignImage, ServicePackage, Reel
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -49,4 +49,12 @@ class ServicePackageSerializer(serializers.ModelSerializer):
             'id', 'title', 'icon', 'price', 'duration', 
             'description', 'features', 'is_active', 'order', 
             'created_at'
-        ]
+        ]
+
+class ReelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Reel
+        fields = [
+            'id', 'title', 'video_file', 'external_url', 
+            'thumbnail', 'description', 'is_active', 'created_at'
+        ]

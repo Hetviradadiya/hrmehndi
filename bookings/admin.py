@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import BookingInquiry, MehndiDesign, DesignImage, Category
+from .models import BookingInquiry, MehndiDesign, DesignImage, Category,Reel
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -41,3 +41,10 @@ class BookingInquiryAdmin(admin.ModelAdmin):
             return format_html('<a href="{}" target="_blank">View file</a>', obj.attachment.url)
         return '-'
     attachment_preview.short_description = 'Attachment'
+
+@admin.register(Reel)
+class ReelAdmin(admin.ModelAdmin):
+    list_display = ('title', 'is_active', 'created_at')
+    list_filter = ('is_active',)
+    search_fields = ('title', 'description')
+    
