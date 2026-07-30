@@ -15,16 +15,26 @@ class DesignImageSerializer(serializers.ModelSerializer):
 
 class MehndiDesignSerializer(serializers.ModelSerializer):
     categories = CategorySerializer(many=True, read_only=True)
+    category_ids = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all(),
+        many=True,
+        write_only=True,
+        required=False,
+        source='categories'
+    )
     all_images = DesignImageSerializer(many=True, read_only=True)
     category_slugs = serializers.SerializerMethodField()
 
     class Meta:
         model = MehndiDesign
         fields = [
-            'id', 'title', 'categories', 'cover_image', 
-            'description', 'is_original_work', 'all_images', 
-            'category_slugs', 'created_at'
+            'id', 'title', 'categories', 'category_ids',
+            'cover_image', 'description', 'is_original_work', 
+            'all_images', 'category_slugs', 'created_at'
         ]
+        extra_kwargs = {
+            'cover_image': {'required': False, 'allow_null': True}
+        }
 
     def get_category_slugs(self, obj):
         return obj.get_category_slugs()

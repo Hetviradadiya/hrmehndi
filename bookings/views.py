@@ -21,27 +21,38 @@ class MehndiDesignViewSet(viewsets.ModelViewSet):
     serializer_class = MehndiDesignSerializer
     authentication_classes = [TokenAuthentication]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
-    pagination_class = StandardResultsSetPagination  # Added Pagination
+    pagination_class = StandardResultsSetPagination
 
-    # Dynamically set permissions: GET is open to anyone, CUD (Create/Update/Delete) requires Admin Auth
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
             return [AllowAny()]
         return [IsAuthenticated()]
 
-    # Handle multiple gallery images upload during create/update
     def perform_create(self, serializer):
+        # Save design instance first
         design = serializer.save()
-        self._handle_gallery_images(design)
+        self._handle_cover_and_gallery(design)
 
     def perform_update(self, serializer):
         design = serializer.save()
-        self._handle_gallery_images(design)
+        
+        # # If user explicitly wants to replace existing gallery images
+        # if self.request.data.get('clear_gallery') == 'true':
+        #     design.all_images.all().delete()
 
-    def _handle_gallery_images(self, design):
+        self._handle_cover_and_gallery(design)
+
+    def _handle_cover_and_gallery(self, design):
         gallery_images = self.request.FILES.getlist('gallery_images')
+
+        # Save all secondary gallery images
         for img in gallery_images:
             DesignImage.objects.create(design=design, image=img)
+
+        # Fallback: If no cover_image was provided, automatically set the first gallery image as cover_image
+        if not design.cover_image and gallery_images:
+            design.cover_image = gallery_images[0]
+            design.save()
 
 class ReelViewSet(viewsets.ModelViewSet):
     queryset = Reel.objects.filter(is_active=True).order_by('-created_at')
