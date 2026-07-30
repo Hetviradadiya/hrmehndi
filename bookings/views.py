@@ -51,6 +51,7 @@ class ReelViewSet(viewsets.ModelViewSet):
 
 
 @api_view(['GET'])
+@authentication_classes([])
 @permission_classes([AllowAny])
 def category_list_api(request):
     categories = Category.objects.all().order_by('name')
@@ -59,6 +60,7 @@ def category_list_api(request):
 
 
 @api_view(['GET'])
+@authentication_classes([])
 @permission_classes([AllowAny])
 def gallery_api(request):
     designs = MehndiDesign.objects.prefetch_related('categories', 'all_images').order_by('-created_at')
@@ -91,6 +93,7 @@ def gallery_api(request):
 
 
 @api_view(['POST'])
+@authentication_classes([])
 @permission_classes([AllowAny])
 def create_booking_api(request):
     serializer = BookingInquirySerializer(data=request.data)
@@ -206,6 +209,7 @@ def login_api(request):
 
 
 @api_view(['POST'])
+@authentication_classes([])
 @permission_classes([AllowAny])
 def logout_api(request):
     if request.user and request.user.is_authenticated:
@@ -215,6 +219,7 @@ def logout_api(request):
 
 
 @api_view(['GET'])
+@authentication_classes([])
 @permission_classes([AllowAny])
 def user_info_api(request):
     if request.user and request.user.is_authenticated:
@@ -240,6 +245,7 @@ def user_info_api(request):
 
 
 @api_view(['GET'])
+@authentication_classes([])
 @permission_classes([AllowAny])
 def service_list_api(request):
     services = ServicePackage.objects.filter(is_active=True).order_by('order', 'id')
