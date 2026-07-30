@@ -13,6 +13,7 @@ from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
 from bookings.models import *
 from bookings.serializers import *
+from bookings.pagination import StandardResultsSetPagination  # Import Custom Pagination
 
 
 class MehndiDesignViewSet(viewsets.ModelViewSet):
@@ -20,6 +21,7 @@ class MehndiDesignViewSet(viewsets.ModelViewSet):
     serializer_class = MehndiDesignSerializer
     authentication_classes = [TokenAuthentication]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
+    pagination_class = StandardResultsSetPagination  # Added Pagination
 
     # Dynamically set permissions: GET is open to anyone, CUD (Create/Update/Delete) requires Admin Auth
     def get_permissions(self):
@@ -61,10 +63,28 @@ def category_list_api(request):
 def gallery_api(request):
     designs = MehndiDesign.objects.prefetch_related('categories', 'all_images').order_by('-created_at')
     
-    # Check if request is filtering only original works (for Home portfolio)
+    # 1. Filter by Original Works if requested
     originals_only = request.GET.get('original')
     if originals_only == 'true':
         designs = designs.filter(is_original_work=True)
+
+    # 2. Filter by Category Slug or ID if passed in URL query params
+    category_param = request.GET.get('category')
+    if category_param and category_param.lower() != 'all':
+        if category_param.isdigit():
+            # If an integer ID is passed
+            designs = designs.filter(categories__id=category_param)
+        else:
+            # If a slug/name string is passed (e.g., 'arabic', 'bridal')
+            designs = designs.filter(categories__slug__iexact=category_param)
+
+    # Instantiate and execute manual pagination for function-based view
+    paginator = StandardResultsSetPagination()
+    page = paginator.paginate_queryset(designs, request)
+    
+    if page is not None:
+        serializer = MehndiDesignSerializer(page, many=True, context={'request': request})
+        return paginator.get_paginated_response(serializer.data)
 
     serializer = MehndiDesignSerializer(designs, many=True, context={'request': request})
     return Response(serializer.data)
