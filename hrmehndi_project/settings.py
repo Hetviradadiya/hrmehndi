@@ -53,10 +53,21 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'hrmehndi_project.wsgi.application'
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "hrmehndi_db",
+        "USER": "hrmehndi_user",
+        "PASSWORD": "YourStrongPasswordhr123!",
+        "HOST": "localhost",
+        "PORT": "5432",
     }
 }
 
@@ -96,14 +107,10 @@ REST_FRAMEWORK = {
 
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost',
-    'http://127.0.0.1',
     'http://localhost:5173',
     'http://127.0.0.1:5173',
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
     'http://192.168.1.22:2000',
     'http://192.168.1.22:5173',
-    'http://192.168.1.22:3000',
     'http://192.168.1.22',
     'https://*.ngrok-free.app',
 ]
