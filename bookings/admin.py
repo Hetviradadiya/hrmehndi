@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import BookingInquiry, MehndiDesign, DesignImage, Category,Reel
+from bookings.models import *
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -48,3 +48,21 @@ class ReelAdmin(admin.ModelAdmin):
     list_filter = ('is_active',)
     search_fields = ('title', 'description')
     
+@admin.register(Visitor)
+class VisitorAdmin(admin.ModelAdmin):
+    list_display = ('visitor_id', 'city', 'country', 'ip_address', 'last_visited', 'created_at')
+    list_filter = ('city', 'country')
+    search_fields = ('visitor_id', 'ip_address')
+    readonly_fields = ('created_at', 'last_visited', 'visitor_id')
+
+@admin.register(Wishlist)
+class WishlistAdmin(admin.ModelAdmin):
+    list_display = ('visitor', 'design', 'created_at')
+    list_filter = ('created_at',)
+    search_fields = ('visitor__visitor_id', 'design__title')
+
+@admin.register(ReelLike)
+class ReelLikeAdmin(admin.ModelAdmin):
+    list_display = ('visitor', 'reel', 'created_at')
+    list_filter = ('created_at',)
+    search_fields = ('visitor__visitor_id', 'reel__title')

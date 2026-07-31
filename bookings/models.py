@@ -109,3 +109,62 @@ class Reel(models.Model):
 
     def __str__(self):
         return self.title or f"Reel #{self.id}"
+
+
+class Visitor(models.Model):
+    visitor_id = models.CharField(max_length=255, unique=True)
+    latitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True)
+    city = models.CharField(max_length=100, null=True, blank=True)
+    country = models.CharField(max_length=100, null=True, blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    last_visited = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['visitor_id'], name='idx_visitor_id'),
+        ]
+        verbose_name = 'visitor'
+        verbose_name_plural = 'visitors'
+
+    def __str__(self):
+        return self.visitor_id
+
+
+class Wishlist(models.Model):
+    visitor = models.ForeignKey(Visitor, on_delete=models.CASCADE, related_name='wishlist_items')
+    design = models.ForeignKey(MehndiDesign, on_delete=models.CASCADE, related_name='wishlisted_by')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('visitor', 'design')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.visitor.visitor_id[:8]} -> {self.design.title or self.design.id}"
+
+class ReelLike(models.Model):
+    visitor = models.ForeignKey(Visitor, on_delete=models.CASCADE, related_name='reel_likes')
+    reel = models.ForeignKey(Reel, on_delete=models.CASCADE, related_name='likes')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('visitor', 'reel')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.visitor.visitor_id[:8]} -> Reel {self.reel.id}"
+
+class ReelComment(models.Model):
+    reel = models.ForeignKey(Reel, on_delete=models.CASCADE, related_name='comments')
+    visitor = models.ForeignKey(Visitor, on_delete=models.CASCADE, related_name='reel_comments')
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Comment by {self.visitor.visitor_id[:8]} on Reel {self.reel.id}"
+        

@@ -7,6 +7,12 @@ router.register(r'products', views.MehndiDesignViewSet, basename='product')
 router.register(r'reels', views.ReelViewSet, basename='reel')
 
 urlpatterns = [
+    path('api/visitor/register/', views.RegisterVisitorAPIView.as_view(), name='api_register_visitor'),
+    path('api/wishlist/', views.WishlistAPIView.as_view(), name='api_wishlist'),
+    path('api/reels/like/', views.ToggleReelLikeAPIView.as_view(), name='api_reel_like'),
+    path('api/reels/<int:reel_id>/comments/', views.ReelCommentAPIView.as_view(), name='api_reel_comments'),
+    path('api/reels/bookmark/', views.ReelBookmarkAPIView.as_view(), name='api_reel_bookmark'),
+
     path('api/categories/', views.category_list_api, name='api_categories'),
     path('api/gallery/', views.gallery_api, name='api_gallery'),
     path('api/bookings/create/', views.create_booking_api, name='api_create_booking'),

@@ -10,10 +10,10 @@ from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import viewsets
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
-
+from rest_framework.views import APIView
 from bookings.models import *
 from bookings.serializers import *
-from bookings.pagination import StandardResultsSetPagination  # Import Custom Pagination
+from bookings.pagination import *
 
 
 class MehndiDesignViewSet(viewsets.ModelViewSet):
@@ -59,6 +59,7 @@ class ReelViewSet(viewsets.ModelViewSet):
     serializer_class = ReelSerializer
     authentication_classes = [TokenAuthentication]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
+    pagination_class = ReelsResultsSetPagination
 
 
 @api_view(['GET'])
@@ -262,3 +263,221 @@ def service_list_api(request):
     services = ServicePackage.objects.filter(is_active=True).order_by('order', 'id')
     serializer = ServicePackageSerializer(services, many=True)
     return Response(serializer.data)
+
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
+
+class RegisterVisitorAPIView(APIView):
+    """
+    POST: Register or update visitor ID along with GPS location coordinates.
+    """
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        visitor_id = request.data.get('visitor_id') or request.headers.get('X-Visitor-Id')
+        if not visitor_id:
+            return Response({'status': False, 'error': 'visitor_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        latitude = request.data.get('latitude')
+        longitude = request.data.get('longitude')
+
+        visitor, created = Visitor.objects.get_or_create(visitor_id=visitor_id)
+
+        if latitude is not None:
+            visitor.latitude = latitude
+        if longitude is not None:
+            visitor.longitude = longitude
+
+        visitor.ip_address = get_client_ip(request)
+        visitor.save()
+
+        return Response({
+            'status': True,
+            'created': created,
+            'visitor_id': visitor.visitor_id,
+            'latitude': visitor.latitude,
+            'longitude': visitor.longitude
+        }, status=status.HTTP_200_OK)
+
+
+class WishlistAPIView(APIView):
+    """
+    GET: Retrieve all wishlisted designs for a visitor.
+    POST: Toggle wishlist status for a specific design.
+    """
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        visitor_id = request.headers.get('X-Visitor-Id') or request.GET.get('visitor_id')
+        if not visitor_id:
+            return Response({'status': False, 'error': 'visitor_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        visitor, _ = Visitor.objects.get_or_create(visitor_id=visitor_id)
+        wishlist_items = Wishlist.objects.filter(visitor=visitor).select_related('design')
+        designs = [item.design for item in wishlist_items]
+
+        serializer = MehndiDesignSerializer(designs, many=True, context={'request': request})
+        return Response({'status': True, 'wishlist': serializer.data})
+
+    def post(self, request):
+        visitor_id = request.headers.get('X-Visitor-Id') or request.data.get('visitor_id')
+        if not visitor_id:
+            return Response({'status': False, 'error': 'visitor_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        design_id = request.data.get('design_id')
+        if not design_id:
+            return Response({'status': False, 'error': 'design_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        visitor, _ = Visitor.objects.get_or_create(visitor_id=visitor_id)
+        design = get_object_or_404(MehndiDesign, id=design_id)
+
+        wishlist_item, created = Wishlist.objects.get_or_create(visitor=visitor, design=design)
+
+        if not created:
+            wishlist_item.delete()
+            return Response({'status': True, 'is_wishlisted': False, 'message': 'Removed from wishlist'})
+
+        return Response({'status': True, 'is_wishlisted': True, 'message': 'Added to wishlist'})
+
+
+class ToggleReelLikeAPIView(APIView):
+    """
+    POST: Toggle like status for a Reel and return the updated count.
+    """
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        visitor_id = request.headers.get('X-Visitor-Id') or request.data.get('visitor_id')
+        if not visitor_id:
+            return Response({'status': False, 'error': 'visitor_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        reel_id = request.data.get('reel_id')
+        if not reel_id:
+            return Response({'status': False, 'error': 'reel_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        visitor, _ = Visitor.objects.get_or_create(visitor_id=visitor_id)
+        reel = get_object_or_404(Reel, id=reel_id)
+
+        like_item, created = ReelLike.objects.get_or_create(visitor=visitor, reel=reel)
+
+        if not created:
+            like_item.delete()
+            return Response({
+                'status': True,
+                'is_liked': False,
+                'likes_count': reel.likes.count(),
+                'message': 'Reel unliked'
+            })
+
+        return Response({
+            'status': True,
+            'is_liked': True,
+            'likes_count': reel.likes.count(),
+            'message': 'Reel liked'
+        })
+
+class ReelCommentAPIView(APIView):
+    """
+    GET: List all comments for a specific reel.
+    POST: Add a new comment to a reel.
+    """
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def get(self, request, reel_id):
+        reel = get_object_or_404(Reel, id=reel_id)
+        comments = reel.comments.all().select_related('visitor')
+        serializer = ReelCommentSerializer(comments, many=True)
+        return Response({
+            'status': True,
+            'comments_count': comments.count(),
+            'comments': serializer.data
+        })
+
+    def post(self, request, reel_id):
+        visitor_id = request.headers.get('X-Visitor-Id') or request.data.get('visitor_id')
+        if not visitor_id:
+            return Response({'status': False, 'error': 'visitor_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        text = request.data.get('text', '').strip()
+        if not text:
+            return Response({'status': False, 'error': 'Comment text cannot be empty'}, status=status.HTTP_400_BAD_REQUEST)
+
+        visitor, _ = Visitor.objects.get_or_create(visitor_id=visitor_id)
+        reel = get_object_or_404(Reel, id=reel_id)
+
+        comment = ReelComment.objects.create(reel=reel, visitor=visitor, text=text)
+        serializer = ReelCommentSerializer(comment)
+
+        return Response({
+            'status': True,
+            'comments_count': reel.comments.count(),
+            'comment': serializer.data,
+            'message': 'Comment added successfully'
+        }, status=status.HTTP_201_CREATED)
+
+class ReelBookmarkAPIView(APIView):
+    """
+    GET: Retrieve all bookmarked/saved reels for a visitor.
+    POST: Toggle bookmark/save status for a Reel using the Visitor foreign key.
+    """
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        visitor_id = request.headers.get('X-Visitor-Id') or request.GET.get('visitor_id')
+        if not visitor_id:
+            return Response({'status': False, 'error': 'visitor_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            visitor = Visitor.objects.get(visitor_id=visitor_id)
+        except Visitor.DoesNotExist:
+            return Response({'status': True, 'count': 0, 'bookmarks': []}, status=status.HTTP_200_OK)
+
+        # Retrieve all bookmarked reels for this visitor
+        bookmark_items = ReelBookmark.objects.filter(visitor=visitor).select_related('reel').order_by('-created_at')
+        reels = [item.reel for item in bookmark_items if item.reel.is_active]
+
+        serializer = ReelSerializer(reels, many=True, context={'request': request})
+        return Response({
+            'status': True,
+            'count': len(reels),
+            'bookmarks': serializer.data
+        }, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        visitor_id = request.headers.get('X-Visitor-Id') or request.data.get('visitor_id')
+        if not visitor_id:
+            return Response({'status': False, 'error': 'visitor_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        reel_id = request.data.get('reel_id')
+        if not reel_id:
+            return Response({'status': False, 'error': 'reel_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        visitor, _ = Visitor.objects.get_or_create(visitor_id=visitor_id)
+        reel = get_object_or_404(Reel, id=reel_id)
+
+        bookmark_item, created = ReelBookmark.objects.get_or_create(visitor=visitor, reel=reel)
+
+        if not created:
+            bookmark_item.delete()
+            return Response({
+                'status': True,
+                'is_bookmarked': False,
+                'message': 'Reel removed from saved bookmarks'
+            }, status=status.HTTP_200_OK)
+
+        return Response({
+            'status': True,
+            'is_bookmarked': True,
+            'message': 'Reel saved to bookmarks'
+        }, status=status.HTTP_201_CREATED)

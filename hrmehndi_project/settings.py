@@ -126,6 +126,9 @@ CORS_ORIGIN_ALLOW_ALL = True
 from corsheaders.defaults import default_headers
 CORS_ALLOW_HEADERS = list(default_headers) + [
     'content-disposition',
+    'x-visitor-id',
+    'authorization',
+    'content-type',
 ]
 CORS_ALLOW_METHODS = [
     'DELETE',
